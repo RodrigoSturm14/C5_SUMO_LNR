@@ -30,7 +30,7 @@
 #define VEL_GIRO_BUSQUEDA 175
 
 // Variables distancia de sensores sharp
-#define DIST_LECTURA_MAX 0
+#define DIST_LECTURA_MAX 35 // sami = 35
 int distSharpCenterLeft = 0;
 int distSharpCenterRight = 0;
 int distSharpLeft = 0;
