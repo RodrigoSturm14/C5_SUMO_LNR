@@ -6,16 +6,6 @@
 #define PIN_SHARP_CENTER_RIGHT 32
 #define PIN_SHARP_RIGHT 35
 
-//#define SHARP_1 35  // LEFT SIDE
-//#define SHARP_2 32  // LEFT
-//#define SHARP_3 26  // CNTER
-//#define SHARP_4 27  // RIGHT
-//#define SHARP_5 25  // RIGHT SIDE
-
-// Variables limites para lectura de sharps
-//#define DISTANCIA_MIN 0
-//#define DISTANCIA_MAX 35
-
 //Pines motores y canales PWM
 #define PIN_MOTOR_IZQUIERDO_1 26
 #define PIN_MOTOR_IZQUIERDO_2 27
@@ -153,17 +143,11 @@ float sharpReadings() {
 }
 
 int estadoMaquina() {
-  // Atacar cuando los sensores del centro detectan rival
   if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = 1;
-  // Atacar y girar un poco a la izquierda cuando el sensor izquierdo detecta el rival
   else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = 2;
-  // Atacar y girar un poco a la derecha cuando el sensor derecho detecta el rival
   else if (distSharpCenterRight <= DIST_LECTURA_MAX && distSharpCenterLeft > DIST_LECTURA_MAX) movimiento = 3;
-  // Girar a la izquierda cuando el sensor izquierdo detecta rival hasta que el sensor centro derecho detecte el rival
   else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = 4;
-  // Girar a la derecha cuando el sensor derecho detecta rival hasta que el sensor centro izquierdo detecte el rival
   else if (distSharpRight <= DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX) movimiento = 5;
-  // Busqueda del robot
   else movimiento = 6;
 }
 
