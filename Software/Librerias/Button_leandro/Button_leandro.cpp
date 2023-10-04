@@ -1,4 +1,4 @@
-#include "Button_pullup.h"
+#include "Button.h"
 
 Button::Button(int p, bool c = false)
 {
