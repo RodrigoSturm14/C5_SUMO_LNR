@@ -1,7 +1,10 @@
-#define PIN_SHARP_CENTER_LEFT 23
-#define PIN_SHARP_CENTER_RIGHT 24
+//Librerias
+
+
 #define PIN_SHARP_LEFT 25
-#define PIN_SHARP_RIGHT 26
+#define PIN_SHARP_CENTER_LEFT 33
+#define PIN_SHARP_CENTER_RIGHT 32
+#define PIN_SHARP_RIGHT 35
 
 //#define SHARP_1 35  // LEFT SIDE
 //#define SHARP_2 32  // LEFT
@@ -14,20 +17,24 @@
 //#define DISTANCIA_MAX 35
 
 //Pines motores y canales PWM
-#define PIN_MOTOR_IZQUIERDO_1 22
-#define PIN_MOTOR_IZQUIERDO_2 23
-#define PIN_MOTOR_DERECHO_1 19
-#define PIN_MOTOR_DERECHO_2 21
+#define PIN_MOTOR_IZQUIERDO_1 26
+#define PIN_MOTOR_IZQUIERDO_2 27
+#define PIN_MOTOR_DERECHO_1 16
+#define PIN_MOTOR_DERECHO_2 17
 
-#define CANAL_PWM_IZQUIERDO_1 11
-#define CANAL_PWM_IZQUIERDO_2 12
-#define CANAL_PWM_DERECHO_1 13
-#define CANAL_PWM_DERECHO_2 14
+#define CANAL_PWM_IZQUIERDO_1 1
+#define CANAL_PWM_IZQUIERDO_2 2
+#define CANAL_PWM_DERECHO_1 3
+#define CANAL_PWM_DERECHO_2 4
+
+// Pulsadores de Inicio y Estrategias
+#define PIN_PULSADOR_START_1 5
+#define PIN_PULSADOR_ESTRATEGIA_2 4
 
 // Velocidades Sumo
-#define VEL_MAX 200
-#define VEL_BAJA 100
-#define VEL_GIRO_BUSQUEDA 175
+#define VEL_MAX 255
+#define VEL_BAJA 150
+#define VEL_GIRO_BUSQUEDA 110
 
 // Variables distancia de sensores sharp
 #define DIST_LECTURA_MAX 35 // sami = 35
@@ -36,6 +43,15 @@ int distSharpCenterRight = 0;
 int distSharpLeft = 0;
 int distSharpRight = 0;
 
+//Enum de estados de movimiento de robot
+enum movimiento {
+    INICIO,
+    BUSQUEDA,
+    BUSQUEDA_MEJORADA,
+    CORRECCION_IZQUIERDA,
+    CORRECCION_DERECHA,
+    ATAQUE
+};
 // Variable que determina el movimiento del robot
 int movimiento = 0;
 
