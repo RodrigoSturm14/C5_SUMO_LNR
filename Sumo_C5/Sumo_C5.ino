@@ -1,6 +1,33 @@
 //Librerias
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h> //Oled
+#include <EngineController.h> //Motores
+#include <AnalogSensor.h> //libreria para sensores analogicos( sensores tatami)
+#include <DistanceSensors.h> //libreria para sensores
+#include <Button_pullup.h>
+#include "BluetoothSerial.h" //Bluetooh
 
+//debug
+#define DEBUG_SHARP 0
+#define DEBUG_TATAMI 0
+#define DEBUG_STATE 0
+#define DEBUG_ANALOG 0
+#define TICK_DEBUG_STATE 500
+#define TICK_DEBUG_ANALOG 500
+#define TICK_DEBUG_BUTTON 500
+#define TICK_DEBUG_SHARP 500
+unsigned long currentTimeSharp = 0;
+unsigned long currentTimeTatami = 0;
+unsigned long currentTimeState = 0;
+unsigned long currentTimeAnalog = 0;
 
+int analog;
+//Oled
+#define SCREEN_WIDTH 128 // OLED width,  in pixels
+#define SCREEN_HEIGHT 64 // OLED height, in pixels
+
+//Pines sensores de Distancia
 #define PIN_SHARP_LEFT 25
 #define PIN_SHARP_CENTER_LEFT 33
 #define PIN_SHARP_CENTER_RIGHT 32
@@ -32,19 +59,6 @@ int distSharpCenterLeft = 0;
 int distSharpCenterRight = 0;
 int distSharpLeft = 0;
 int distSharpRight = 0;
-
-//Enum de estados de movimiento de robot
-enum movimiento {
-    INICIO,
-    BUSQUEDA,
-    BUSQUEDA_MEJORADA,
-    CORRECCION_IZQUIERDA,
-    CORRECCION_DERECHA,
-    ATAQUE
-};
-// Variable que determina el movimiento del robot
-int movimiento = 0;
-
 class Sharp {
 private:
   int pin;
@@ -78,54 +92,6 @@ double Sharp::SharpDist() {
   delay(100);
 }
 
-class Motor {
-private:
-  // atributos/variables usados por los metodos/funciones de la clase
-  int pin_a;
-  int pin_b;
-  int ch_a;
-  int ch_b;
-  int frecuencia = 1000;
-  int resolucion = 8;
-
-public:
-  // metodos/funciones
-  Motor(int pin_a, int pin_b, int ch_a, int ch_b);
-  void Forward(int vel);
-  void Backward(int vel);
-  void Stop();
-};
-
-// Constructor
-Motor::Motor(int pin_a_in, int pin_b_in, int ch_a_in, int ch_b_in) {
-  pin_a = pin_a_in;
-  pin_b = pin_b_in;
-  ch_a = ch_a_in;
-  ch_b = ch_b_in;
-
-  ledcSetup(ch_a, frecuencia, resolucion);
-  ledcSetup(ch_b, frecuencia, resolucion);
-  ledcAttachPin(pin_a, ch_a);
-  ledcAttachPin(pin_b, ch_b);
-}
-
-// Metodos motores
-void Motor::Forward(int vel) {
-  ledcWrite(ch_a, vel);
-  ledcWrite(ch_b, 0);
-}
-void Motor::Backward(int vel) {
-  ledcWrite(ch_a, 0);
-  ledcWrite(ch_b, vel);
-}
-void Motor::Stop() {
-  ledcWrite(ch_a, 0);
-  ledcWrite(ch_b, 0);
-}
-
-//Declaracion de objetos motores por constructor
-Motor *leftmotor = new Motor(PIN_MOTOR_IZQUIERDO_1, PIN_MOTOR_IZQUIERDO_2, CANAL_PWM_IZQUIERDO_1, CANAL_PWM_IZQUIERDO_2);
-Motor *rightmotor = new Motor(PIN_MOTOR_DERECHO_1, PIN_MOTOR_DERECHO_2, CANAL_PWM_DERECHO_1, CANAL_PWM_DERECHO_2);
 // --- Sensores Centro
 Sharp *sharpCenterLeft = new Sharp(PIN_SHARP_CENTER_LEFT);
 Sharp *sharpCenterRight = new Sharp(PIN_SHARP_CENTER_RIGHT);
@@ -133,16 +99,78 @@ Sharp *sharpCenterRight = new Sharp(PIN_SHARP_CENTER_RIGHT);
 Sharp *sharpLeft = new Sharp(PIN_SHARP_LEFT);
 Sharp *sharpRight = new Sharp(PIN_SHARP_RIGHT);
 
-float sharpReadings() {
+//Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+IEngine *rightEngine = new Driver_DRV8825(PIN_MOTOR_DERECHO_1, PIN_MOTOR_DERECHO_2, CANAL_PWM_DERECHO_1, CANAL_PWM_DERECHO_2);
+IEngine *leftEngine = new Driver_DRV8825(PIN_MOTOR_IZQUIERDO_1, PIN_MOTOR_IZQUIERDO_2, CANAL_PWM_IZQUIERDO_1, CANAL_PWM_IZQUIERDO_2);
+EngineController *Aldosivi = new EngineController(rightEngine, leftEngine);
+
+//AnalogSensor *rightTatami = new AnalogSensor(PIN_SENSOR_TATAMI_DER);
+//AnalogSensor *LeftTatami = new AnalogSensor(PIN_SENSOR_TATAMI_IZQ);
+
+//Isensor *sharpRight = new Sharp_GP2Y0A02(PIN_SENSOR_DISTANCIA_DERECHO);
+//Isensor *sharpLeft = new Sharp_GP2Y0A02(PIN_SENSOR_DISTANCIA_IZQUIERDO);
+
+Button *start = new  Button(PIN_PULSADOR_START_1, true);
+Button *strategy = new  Button(PIN_PULSADOR_ESTRATEGIA_2);
+
+
+//AnalogSensor *ldrSensor = new AnalogSensor(PIN_SENSOR_LDR);
+
+//Funciones para imprimir las lecturas de los sensores por el serial Bluetooth
+int printAnalog(char t)
+{
+  if (millis() > currentTimeAnalog + TICK_DEBUG_ANALOG)
+  {
+    currentTimeAnalog = millis();
+    SerialBT.print(t + " :");
+    SerialBT.println(analog);
+  }
+}
+void sharpReadings() {
   distSharpCenterLeft = sharpCenterLeft->SharpDist();
   distSharpCenterRight = sharpCenterRight->SharpDist();
-
   distSharpLeft = sharpLeft->SharpDist();
   distSharpRight = sharpRight->SharpDist();
   // Tatami?
 }
+void printReadSensors(){
+  if (millis() > currentTimeSharp + TICK_DEBUG_SHARP)
+  {
+    SerialBT.print("Left Distance: ");
+    SerialBT.println(distSharpLeft);
+    SerialBT.print("Left Center Distance: ");
+    SerialBT.println(distSharpCenterLeft);
+    SerialBT.print("right Center Distance: ");
+    SerialBT.println(distSharpCenterRight);
+    SerialBT.print("right Distance: ");
+    SerialBT.println(distSharpRight);
+    SerialBT.println("-----------------------");
+  }
+}
+void printState(){
+  if (millis() > currentTimeState + TICK_DEBUG_STATE)
+  {
+    SerialBT.println("State :  ");
+    SerialBT.println(movimiento);
+  }
+}
+
+//Enum de estados de movimiento de robot
+enum movimiento {
+    INICIO,
+    BUSQUEDA,
+    BUSQUEDA_MEJORADA,
+    CORRECCION_IZQUIERDA,
+    CORRECCION_DERECHA,
+    ATAQUE
+};
+// Variable que determina el movimiento del robot
+int movimiento = INICIO;
 
 int estadoMaquina() {
+  if(stateStart) movimiento = BUSQUEDA;
+  // Atacar cuando los sensores del centro detectan rival
   if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = 1;
   else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = 2;
   else if (distSharpCenterRight <= DIST_LECTURA_MAX && distSharpCenterLeft > DIST_LECTURA_MAX) movimiento = 3;
@@ -153,7 +181,7 @@ int estadoMaquina() {
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("Estrategia: Sumo ataque");
+  Serial.println("Aldosivi");
 }
 
 void loop() {
@@ -163,8 +191,12 @@ void loop() {
   estadoMaquina();
 
   switch (movimiento) {
-    case 1:
-      leftmotor->Forward(200);
+    case INICIO:
+      stateStart = start->GetIsPress()
+      if(stateStart) movimiento = BUSQUEDA;
+      break;
+    case BUSQUEDA:
+      leftmotor->Backward(200);
       rightmotor->Forward(200);
       break;
 
