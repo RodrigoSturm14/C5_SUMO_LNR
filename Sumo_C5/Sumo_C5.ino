@@ -5,16 +5,16 @@
 #include <EngineController.h> //Motores
 #include <AnalogSensor.h> //libreria para sensores analogicos( sensores tatami)
 #include <DistanceSensors.h> //libreria para sensores
-#include <Button_pullup.h>
+//#include <Button.h>
 #include "BluetoothSerial.h" //Bluetooh
 
 //debug
 #define DEBUG_SHARP 1
 #define DEBUG_STATE 1
 #define DEBUG_ANALOG 0
-#define TICK_DEBUG_STATE 500
-#define TICK_DEBUG_ANALOG 500
-#define TICK_DEBUG_SHARP 500
+#define TICK_DEBUG_STATE 1500
+#define TICK_DEBUG_ANALOG 1500
+#define TICK_DEBUG_SHARP 1500
 unsigned long currentTimeSharp = 0;
 unsigned long currentTimeState = 0;
 unsigned long currentTimeAnalog = 0;
@@ -33,8 +33,8 @@ int analog;
 //Pines motores y canales PWM
 #define PIN_MOTOR_IZQUIERDO_1 26
 #define PIN_MOTOR_IZQUIERDO_2 27
-#define PIN_MOTOR_DERECHO_1 16
-#define PIN_MOTOR_DERECHO_2 17
+#define PIN_MOTOR_DERECHO_1 17
+#define PIN_MOTOR_DERECHO_2 16
 
 #define CANAL_PWM_IZQUIERDO_1 1
 #define CANAL_PWM_IZQUIERDO_2 2
@@ -53,7 +53,7 @@ bool stateStart;
 #define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 130 
 #define VEL_GIRO_BUSQUEDA_MEJORADA_DER 100
 // Variables distancia de sensores sharp
-#define DIST_LECTURA_MAX 35 // sami = 35
+#define DIST_LECTURA_MAX 40 // sami = 35
 int distSharpCenterLeft = 0;
 int distSharpCenterRight = 0;
 int distSharpLeft = 0;
@@ -89,6 +89,12 @@ double Sharp::SharpDist() {
   delay(100);
 }
 
+//configuramos el Serial Bluetooth
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
+BluetoothSerial SerialBT;
+
 // --- Sensores Centro
 Sharp *sharpCenterLeft = new Sharp(PIN_SHARP_CENTER_LEFT);
 Sharp *sharpCenterRight = new Sharp(PIN_SHARP_CENTER_RIGHT);
@@ -108,8 +114,24 @@ EngineController *Aldosivi = new EngineController(rightEngine, leftEngine);
 //Isensor *sharpRight = new Sharp_GP2Y0A02(PIN_SENSOR_DISTANCIA_DERECHO);
 //Isensor *sharpLeft = new Sharp_GP2Y0A02(PIN_SENSOR_DISTANCIA_IZQUIERDO);
 
-Button *start = new  Button(PIN_PULSADOR_START_1, true);
-Button *strategy = new  Button(PIN_PULSADOR_ESTRATEGIA_2);
+//Button *stat = new  Button(PIN_PULSADOR_START_1);
+//Button *strategy = new  Button(PIN_PULSADOR_ESTRATEGIA_2, false);
+bool flank = HIGH;
+bool previousState;
+void SetFlank(bool f)
+{
+    flank = f;
+    previousState = !flank;
+}
+
+bool GetIsPress()
+{
+    bool actualState = digitalRead(PIN_PULSADOR_START_1);
+    bool state = (previousState != actualState) && actualState == flank;
+    previousState = actualState;
+    delay(100);
+    return state;
+}
 
 
 //AnalogSensor *ldrSensor = new AnalogSensor(PIN_SENSOR_LDR);
@@ -122,7 +144,8 @@ void sharpReadings() {
   // Tatami?
 }
 //Funciones para imprimir las lecturas de los sensores por el serial Bluetooth
-int printAnalog(char t)
+/*
+char printAnalog(char t)
 {
   if (millis() > currentTimeAnalog + TICK_DEBUG_ANALOG)
   {
@@ -131,9 +154,11 @@ int printAnalog(char t)
     SerialBT.println(analog);
   }
 }
+*/
 void printReadSensors(){
   if (millis() > currentTimeSharp + TICK_DEBUG_SHARP)
   {
+    currentTimeSharp = millis();
     SerialBT.print("Left Distance: ");
     SerialBT.println(distSharpLeft);
     SerialBT.print("Left Center Distance: ");
@@ -143,13 +168,6 @@ void printReadSensors(){
     SerialBT.print("right Distance: ");
     SerialBT.println(distSharpRight);
     SerialBT.println("-----------------------");
-  }
-}
-void printState(){
-  if (millis() > currentTimeState + TICK_DEBUG_STATE)
-  {
-    SerialBT.println("State :  ");
-    SerialBT.println(movimiento);
   }
 }
 
@@ -166,18 +184,53 @@ enum movimiento {
 // Variable que determina el movimiento del robot
 int movimiento = INICIO;
 
+void printStatus()
+{
+  if (millis() > currentTimeState + TICK_DEBUG_STATE)
+  {
+    currentTimeState = millis();
+    String state = "";
+    switch (movimiento)
+    {
+      case INICIO: state = "INICIO";
+      break;
+      case BUSQUEDA_MEJORADA: state = "BUSQUEDA_MEJORADA";
+      break;
+      case CORRECCION_IZQUIERDA: state = state = "CORRECCION_IZQUIERDA"; 
+      break;
+      case CORRECCION_DERECHA: state = "CORRECCION_DERECHA"; 
+      break;
+      case TE_ENCONTRE_IZQUIERDA: state = "TE_ENCONTRE_IZQUIERDA"; 
+      break;
+      case TE_ENCONTRE_DERECHA: state = "TE_ENCONTRE_DERECHA"; 
+      break;
+      case ATAQUE: state = "ATAQUE";
+      break;
+    }
+
+    SerialBT.print("State: ");
+    SerialBT.println(state);
+    SerialBT.print("|| boton : ");
+    SerialBT.println(stateStart);
+    SerialBT.println("---------");
+  }
+  }
+
 void switchCase(){
   switch (movimiento) {
     case INICIO:
       Aldosivi->Stop();
-      stateStart = start->GetIsPress()
-      if(stateStart) 
+      stateStart = GetIsPress();
+      if(stateStart == true) { 
         delay(4900);
         movimiento = BUSQUEDA_MEJORADA;
+      }
+      else Aldosivi->Stop();
       break;
     case BUSQUEDA_MEJORADA:
       Aldosivi->Backward( VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
+      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
@@ -187,6 +240,7 @@ void switchCase(){
     case CORRECCION_IZQUIERDA:
       Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
+      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
@@ -195,6 +249,7 @@ void switchCase(){
     case CORRECCION_DERECHA:
       Aldosivi->Right(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
+      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
@@ -203,6 +258,7 @@ void switchCase(){
     case TE_ENCONTRE_IZQUIERDA:
       Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
+      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
@@ -211,14 +267,16 @@ void switchCase(){
     case TE_ENCONTRE_DERECHA:
       Aldosivi->Right(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
+      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       break;
     
     case ATAQUE:
-      if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) Aldosivi->Forward( VEL_MAX, VEL_MAX);
+      Aldosivi->Forward( VEL_MAX, VEL_MAX);
 
+      if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
@@ -257,6 +315,7 @@ void switchCase(){
 void setup() {
   Serial.begin(115200);
   SerialBT.begin("Aldosivi");
+  pinMode(PIN_PULSADOR_START_1, INPUT_PULLDOWN);
 }
 
 void loop() {
@@ -272,13 +331,13 @@ void loop() {
 
   if (DEBUG_STATE)
   {
-    printState();
+    printStatus();
   }
 
-  if (DEBUG_ANALOG)
+  /*if (DEBUG_ANALOG)
   {
     printAnalog();
   }
-  
+  */
 
 }
