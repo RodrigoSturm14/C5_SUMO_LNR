@@ -49,10 +49,10 @@ Sharp_GP2Y0A02::Sharp_GP2Y0A02(int pin)
 double Sharp_GP2Y0A02::SensorRead()
 {
     float adc = AnalogReading(sensorPin);
-    if (adc > 2700 ) adc = 2700;
-    if(adc < 500 ) adc = 500;
+    if (adc > 2800 ) adc = 2800;
+    if(adc < 300 ) adc = 300;
     float distance = 10650.08*(pow(adc , -0.74999))+1; //254000 *(pow( adc , -1.2134));
-    delay(100);
+    delay(10);
     return distance;
 }
 

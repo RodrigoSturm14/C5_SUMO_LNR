@@ -6,7 +6,7 @@ class AnalogSensor
 {
 private:
     int pin;
-    int n = 10;
+    int n = 5;
 
 public:
     AnalogSensor(int p);
