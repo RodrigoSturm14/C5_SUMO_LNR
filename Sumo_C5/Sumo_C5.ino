@@ -1,12 +1,12 @@
 //Librerias
 #include <Wire.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h> //Oled
-#include <EngineController.h> //Motores
-#include <AnalogSensor.h> //libreria para sensores analogicos( sensores tatami)
-#include <DistanceSensors.h> //libreria para sensores
+#include <Adafruit_SSD1306.h>  //Oled
+#include <EngineController.h>  //Motores
+#include <AnalogSensor.h>      //libreria para sensores analogicos( sensores tatami)
+#include <DistanceSensors.h>   //libreria para sensores
 //#include <Button.h>
-#include "BluetoothSerial.h" //Bluetooh
+#include "BluetoothSerial.h"  //Bluetooh
 
 //debug
 #define DEBUG_SHARP 1
@@ -21,8 +21,8 @@ unsigned long currentTimeAnalog = 0;
 
 int analog;
 //Oled
-#define SCREEN_WIDTH 128 // OLED width,  in pixels
-#define SCREEN_HEIGHT 64 // OLED height, in pixels
+#define SCREEN_WIDTH 128  // OLED width,  in pixels
+#define SCREEN_HEIGHT 64  // OLED height, in pixels
 
 //Pines sensores de Distancia
 #define PIN_SHARP_LEFT 25
@@ -44,16 +44,18 @@ int analog;
 // Pulsadores de Inicio y Estrategias
 #define PIN_PULSADOR_START_1 5
 #define PIN_PULSADOR_ESTRATEGIA_2 4
-bool stateStart;
+bool stateStart = 1;
+unsigned long currentTimeButton = 0;
+#define TICK_START 1000
 
 // Velocidades Sumo
 #define VEL_MAX 255
 #define VEL_BAJA 150
 #define VEL_GIRO_BUSQUEDA 110
-#define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 130 
+#define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 130
 #define VEL_GIRO_BUSQUEDA_MEJORADA_DER 100
 // Variables distancia de sensores sharp
-#define DIST_LECTURA_MAX 40 // sami = 35
+#define DIST_LECTURA_MAX 40  // sami = 35
 int distSharpCenterLeft = 0;
 int distSharpCenterRight = 0;
 int distSharpLeft = 0;
@@ -118,19 +120,20 @@ EngineController *Aldosivi = new EngineController(rightEngine, leftEngine);
 //Button *strategy = new  Button(PIN_PULSADOR_ESTRATEGIA_2, false);
 bool flank = HIGH;
 bool previousState;
-void SetFlank(bool f)
-{
-    flank = f;
-    previousState = !flank;
+void SetFlank(bool f) {
+  flank = f;
+  previousState = !flank;
 }
 
-bool GetIsPress()
-{
-    bool actualState = digitalRead(PIN_PULSADOR_START_1);
-    bool state = (previousState != actualState) && actualState == flank;
-    previousState = actualState;
-    delay(100);
-    return state;
+bool GetIsPress() {
+  /*
+  bool actualState = digitalRead(PIN_PULSADOR_START_1);
+  bool state = (previousState != actualState) && actualState == flank;
+  previousState = actualState;
+  delay(100);
+  return state;
+  */
+  return digitalRead(PIN_PULSADOR_START_1);
 }
 
 
@@ -155,9 +158,8 @@ char printAnalog(char t)
   }
 }
 */
-void printReadSensors(){
-  if (millis() > currentTimeSharp + TICK_DEBUG_SHARP)
-  {
+void printReadSensors() {
+  if (millis() > currentTimeSharp + TICK_DEBUG_SHARP) {
     currentTimeSharp = millis();
     SerialBT.print("Left Distance: ");
     SerialBT.println(distSharpLeft);
@@ -173,62 +175,77 @@ void printReadSensors(){
 
 //Enum de estados de movimiento de robot
 enum movimiento {
-    INICIO,
-    BUSQUEDA_MEJORADA,
-    CORRECCION_IZQUIERDA,
-    CORRECCION_DERECHA,
-    TE_ENCONTRE_IZQUIERDA,
-    TE_ENCONTRE_DERECHA,
-    ATAQUE
+  INICIO,
+  BUSQUEDA_MEJORADA,
+  CORRECCION_IZQUIERDA,
+  CORRECCION_DERECHA,
+  TE_ENCONTRE_IZQUIERDA,
+  TE_ENCONTRE_DERECHA,
+  ATAQUE
 };
 // Variable que determina el movimiento del robot
 int movimiento = INICIO;
 
-void printStatus()
-{
-  if (millis() > currentTimeState + TICK_DEBUG_STATE)
-  {
+void printStatus() {
+  if (millis() > currentTimeState + TICK_DEBUG_STATE) {
     currentTimeState = millis();
     String state = "";
-    switch (movimiento)
-    {
-      case INICIO: state = "INICIO";
-      break;
-      case BUSQUEDA_MEJORADA: state = "BUSQUEDA_MEJORADA";
-      break;
-      case CORRECCION_IZQUIERDA: state = state = "CORRECCION_IZQUIERDA"; 
-      break;
-      case CORRECCION_DERECHA: state = "CORRECCION_DERECHA"; 
-      break;
-      case TE_ENCONTRE_IZQUIERDA: state = "TE_ENCONTRE_IZQUIERDA"; 
-      break;
-      case TE_ENCONTRE_DERECHA: state = "TE_ENCONTRE_DERECHA"; 
-      break;
-      case ATAQUE: state = "ATAQUE";
-      break;
+    switch (movimiento) {
+      case INICIO:
+        state = "INICIO";
+        break;
+      case BUSQUEDA_MEJORADA:
+        state = "BUSQUEDA_MEJORADA";
+        break;
+      case CORRECCION_IZQUIERDA:
+        state = "CORRECCION_IZQUIERDA";
+        break;
+      case CORRECCION_DERECHA:
+        state = "CORRECCION_DERECHA";
+        break;
+      case TE_ENCONTRE_IZQUIERDA:
+        state = "TE_ENCONTRE_IZQUIERDA";
+        break;
+      case TE_ENCONTRE_DERECHA:
+        state = "TE_ENCONTRE_DERECHA";
+        break;
+      case ATAQUE:
+        state = "ATAQUE";
+        break;
     }
 
     SerialBT.print("State: ");
     SerialBT.println(state);
     SerialBT.print("|| boton : ");
-    SerialBT.println(stateStart);
+    SerialBT.println(GetIsPress());
     SerialBT.println("---------");
   }
-  }
+}
 
-void switchCase(){
+void switchCase() {
   switch (movimiento) {
+
     case INICIO:
       Aldosivi->Stop();
-      stateStart = GetIsPress();
-      if(stateStart == true) { 
-        delay(4900);
-        movimiento = BUSQUEDA_MEJORADA;
+      // stateStart = GetIsPress();
+
+      while (GetIsPress() == true){
+        SerialBT.println("Esperando confirmacion..");
+        delay(500);
       }
-      else Aldosivi->Stop();
+
+      /*if (stateStart == false) {
+        
+      } else Aldosivi->Stop();*/
+
+      SerialBT.println("Pressed");
+      delay(4900);
+      movimiento = BUSQUEDA_MEJORADA;
+
       break;
+
     case BUSQUEDA_MEJORADA:
-      Aldosivi->Backward( VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
+      Aldosivi->Backward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
@@ -272,9 +289,9 @@ void switchCase(){
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       break;
-    
+
     case ATAQUE:
-      Aldosivi->Forward( VEL_MAX, VEL_MAX);
+      Aldosivi->Forward(VEL_MAX, VEL_MAX);
 
       if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
@@ -282,7 +299,7 @@ void switchCase(){
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
       break;
-/*
+      /*
     case 9:
       do {
         leftmotor->Backward(180);
@@ -310,12 +327,11 @@ void switchCase(){
       break;
 */
   }
-  
 }
 void setup() {
   Serial.begin(115200);
   SerialBT.begin("Aldosivi");
-  pinMode(PIN_PULSADOR_START_1, INPUT_PULLDOWN);
+  pinMode(PIN_PULSADOR_START_1, INPUT_PULLUP);
 }
 
 void loop() {
@@ -324,13 +340,11 @@ void loop() {
   // Seleccion del movimiento del robot
   switchCase();
 
-  if (DEBUG_SHARP)
-  {
+  if (DEBUG_SHARP) {
     printReadSensors();
   }
 
-  if (DEBUG_STATE)
-  {
+  if (DEBUG_STATE) {
     printStatus();
   }
 
@@ -339,5 +353,4 @@ void loop() {
     printAnalog();
   }
   */
-
 }
