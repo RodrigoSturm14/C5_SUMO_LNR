@@ -1,7 +1,6 @@
-#include <Button.h>
 #include "BluetoothSerial.h"
 
-#define PIN_BUTTON 23
+#define PIN_BUTTON 5
 unsigned long currentTimeButton = 0;
 #define TICK_START 1000
 
@@ -9,16 +8,29 @@ unsigned long currentTimeButton = 0;
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 BluetoothSerial SerialBT;
-Button *start = new  Button(PIN_BUTTON);
 
-void setup() 
-{
-  SerialBT.begin("RYO");
+bool flank = HIGH;
+bool previousState;
+void SetFlank(bool f) {
+  flank = f;
+  previousState = !flank;
 }
 
-void loop() 
-{if (millis() > currentTimeButton + TICK_START)
-  {
-    if(start->GetIsPress()) SerialBT.println("Press");
+bool GetIsPress() {
+  bool actualState = digitalRead(PIN_BUTTON);
+  bool state = (previousState != actualState) && actualState == flank;
+  previousState = actualState;
+  delay(100);
+  return state;
+}
+
+void setup() {
+  SerialBT.begin("Aldosivi");
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
+}
+
+void loop() {
+  if (millis() > currentTimeButton + TICK_START) {
+    if (GetIsPress()) SerialBT.println("Press");
   }
 }
