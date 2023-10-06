@@ -48,12 +48,18 @@ bool stateStart = 1;
 unsigned long currentTimeButton = 0;
 #define TICK_START 1000
 
+// Variables de pantalla OLED
+#define SCREEN_WIDTH 128  // OLED width,  in pixels
+#define SCREEN_HEIGHT 64  // OLED height, in pixels
+Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
 // Velocidades Sumo
 #define VEL_MAX 255
 #define VEL_BAJA 150
 #define VEL_GIRO_BUSQUEDA 110
-#define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 130
-#define VEL_GIRO_BUSQUEDA_MEJORADA_DER 100
+#define VEL_CORRECCION 90
+#define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 60  // 130
+#define VEL_GIRO_BUSQUEDA_MEJORADA_DER 60  // 100
 // Variables distancia de sensores sharp
 #define DIST_LECTURA_MAX 40  // sami = 35
 int distSharpCenterLeft = 0;
@@ -228,52 +234,73 @@ void switchCase() {
     case INICIO:
       Aldosivi->Stop();
       // stateStart = GetIsPress();
+      oled.clearDisplay();
+      oled.setTextSize(1);
+      oled.setTextColor(WHITE);
+      oled.setCursor(4, 0);
+      oled.println("INICIO");
+      oled.setCursor(0, 9);
+      oled.println("---------------------");
+      oled.setCursor(0, 26);
+      oled.println("Esperando confirmacion..");
+      oled.display();
 
-      while (GetIsPress() == true){
-        SerialBT.println("Esperando confirmacion..");
-        delay(500);
+      while (GetIsPress() == true) {
+        if (DEBUG_STATE) {
+          if (millis() > currentTimeState + TICK_DEBUG_STATE) {
+            currentTimeState = millis();
+            SerialBT.println("Esperando confirmacion..");
+          }
+        }
       }
+      oled.clearDisplay();
+      oled.setTextSize(1);
+      oled.setTextColor(WHITE);
+      oled.setCursor(4, 0);
+      oled.println("Pressed");
+      oled.display();
+      if (DEBUG_STATE) SerialBT.println("Pressed");
 
-      /*if (stateStart == false) {
-        
-      } else Aldosivi->Stop();*/
-
-      SerialBT.println("Pressed");
       delay(4900);
+      oled.clearDisplay();
+      oled.display();
+
       movimiento = BUSQUEDA_MEJORADA;
 
       break;
 
     case BUSQUEDA_MEJORADA:
-      Aldosivi->Backward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
+      Aldosivi->Forward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
+      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
+      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
       break;
 
     case CORRECCION_IZQUIERDA:
-      Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+      Aldosivi->Left(VEL_CORRECCION, VEL_CORRECCION);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
+      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
       break;
 
     case CORRECCION_DERECHA:
-      Aldosivi->Right(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+      Aldosivi->Right(VEL_CORRECCION, VEL_CORRECCION);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
+      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
       break;
 
     case TE_ENCONTRE_IZQUIERDA:
-      Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+      do {
+        Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+      } while (sharpCenterRight->SharpDist() > DIST_LECTURA_MAX);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
@@ -282,20 +309,21 @@ void switchCase() {
       break;
 
     case TE_ENCONTRE_DERECHA:
-      Aldosivi->Right(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+      do {
+        Aldosivi->Right(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+      } while (sharpCenterLeft->SharpDist() > DIST_LECTURA_MAX);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
-      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
+      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
+      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       break;
 
     case ATAQUE:
       Aldosivi->Forward(VEL_MAX, VEL_MAX);
-
       if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
+      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
+      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
       else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
       else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
       break;
@@ -331,6 +359,8 @@ void switchCase() {
 void setup() {
   Serial.begin(115200);
   SerialBT.begin("Aldosivi");
+  Wire.begin();
+  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   pinMode(PIN_PULSADOR_START_1, INPUT_PULLUP);
 }
 
