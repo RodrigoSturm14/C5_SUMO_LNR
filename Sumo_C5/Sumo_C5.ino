@@ -31,10 +31,10 @@ int analog;
 #define PIN_SHARP_RIGHT 35
 
 //Pines motores y canales PWM
-#define PIN_MOTOR_IZQUIERDO_1 26
-#define PIN_MOTOR_IZQUIERDO_2 27
-#define PIN_MOTOR_DERECHO_1 17
-#define PIN_MOTOR_DERECHO_2 16
+#define PIN_MOTOR_IZQUIERDO_1 17
+#define PIN_MOTOR_IZQUIERDO_2 16
+#define PIN_MOTOR_DERECHO_1 26
+#define PIN_MOTOR_DERECHO_2 27
 
 #define CANAL_PWM_IZQUIERDO_1 1
 #define CANAL_PWM_IZQUIERDO_2 2
@@ -326,6 +326,7 @@ void switchCase() {
       do {
         Aldosivi->Right(VEL_GIRO, VEL_GIRO);
       } while (sharpCenterLeft->SharpDist() > DIST_LECTURA_MAX);
+
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
