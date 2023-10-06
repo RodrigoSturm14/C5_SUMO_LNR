@@ -56,9 +56,10 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 // Velocidades Sumo
 #define VEL_MAX 255
 #define VEL_BAJA 150
-#define VEL_GIRO_BUSQUEDA 110
 #define VEL_CORRECCION 90
-#define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 60  // 130
+#define VEL_GIRO 110
+#define VEL_EJE_BUSQUEDA 90
+#define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 70  // 130
 #define VEL_GIRO_BUSQUEDA_MEJORADA_DER 60  // 100
 // Variables distancia de sensores sharp
 #define DIST_LECTURA_MAX 40  // sami = 35
@@ -270,6 +271,11 @@ void switchCase() {
       break;
 
     case BUSQUEDA_MEJORADA:
+      /* Busqueda sobre propio eje 
+      Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
+      */
+
+      // Busqueda moverse en circulo
       Aldosivi->Forward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
@@ -298,8 +304,12 @@ void switchCase() {
       break;
 
     case TE_ENCONTRE_IZQUIERDA:
+      /* Giro para cronometrar
+      Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+      delay(1500);
+      */
       do {
-        Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+        Aldosivi->Left(VEL_GIRO, VEL_GIRO);
       } while (sharpCenterRight->SharpDist() > DIST_LECTURA_MAX);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
@@ -309,8 +319,12 @@ void switchCase() {
       break;
 
     case TE_ENCONTRE_DERECHA:
+      /* Giro para cronometrar
+      Aldosivi->Right(VEL_GIRO, VEL_GIRO);
+      delay(1500);
+      */
       do {
-        Aldosivi->Right(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+        Aldosivi->Right(VEL_GIRO, VEL_GIRO);
       } while (sharpCenterLeft->SharpDist() > DIST_LECTURA_MAX);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
