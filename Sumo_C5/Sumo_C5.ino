@@ -271,12 +271,13 @@ void switchCase() {
       break;
 
     case BUSQUEDA_MEJORADA:
-      /* Busqueda sobre propio eje 
+      // Busqueda sobre propio eje 
       Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
-      */
 
       // Busqueda moverse en circulo
+      /*
       Aldosivi->Forward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
+      */
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
