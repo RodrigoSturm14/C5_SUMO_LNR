@@ -9,12 +9,16 @@
 #include "BluetoothSerial.h"  //Bluetooh
 
 //debug
-#define DEBUG_SHARP 1
-#define DEBUG_STATE 1
+#define DEBUG_SHARP 0
+#define DEBUG_STATE 0
 #define DEBUG_ANALOG 0
 #define TICK_DEBUG_STATE 1500
 #define TICK_DEBUG_ANALOG 1500
 #define TICK_DEBUG_SHARP 1500
+
+#define TICK_GIRO_INICIO 50
+#define TICK_INICIO 4900
+
 unsigned long currentTimeSharp = 0;
 unsigned long currentTimeState = 0;
 unsigned long currentTimeAnalog = 0;
@@ -58,11 +62,15 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define VEL_BAJA 150
 #define VEL_CORRECCION 90
 #define VEL_GIRO 110
-#define VEL_EJE_BUSQUEDA 90
-#define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 70  // 130
-#define VEL_GIRO_BUSQUEDA_MEJORADA_DER 60  // 100
+#define VEL_EJE_BUSQUEDA 110
+#define VEL_CORRECCION_IZQ_IZQ 240
+#define VEL_CORRECCION_IZQ_DER 255
+#define VEL_CORRECCION_DER_IZQ 255
+#define VEL_CORRECCION_DER_DER 240
+#define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 90  // 130
+#define VEL_GIRO_BUSQUEDA_MEJORADA_DER 80  // 100
 // Variables distancia de sensores sharp
-#define DIST_LECTURA_MAX 40  // sami = 35
+#define DIST_LECTURA_MAX 60  // sami = 35
 int distSharpCenterLeft = 0;
 int distSharpCenterRight = 0;
 int distSharpLeft = 0;
@@ -262,10 +270,11 @@ void switchCase() {
       oled.display();
       if (DEBUG_STATE) SerialBT.println("Pressed");
 
-      delay(4900);
+      delay(TICK_INICIO);
       oled.clearDisplay();
       oled.display();
-
+      Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_INICIO);
       movimiento = BUSQUEDA_MEJORADA;
 
       break;
@@ -287,7 +296,7 @@ void switchCase() {
       break;
 
     case CORRECCION_IZQUIERDA:
-      Aldosivi->Left(VEL_CORRECCION, VEL_CORRECCION);
+      Aldosivi->Forward(VEL_CORRECCION_IZQ_DER, VEL_CORRECCION_IZQ_IZQ);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
@@ -296,7 +305,7 @@ void switchCase() {
       break;
 
     case CORRECCION_DERECHA:
-      Aldosivi->Right(VEL_CORRECCION, VEL_CORRECCION);
+      Aldosivi->Right(VEL_CORRECCION_DER_DER, VEL_CORRECCION_DER_IZQ);
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
