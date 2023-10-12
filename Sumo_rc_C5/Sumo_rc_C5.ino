@@ -172,7 +172,7 @@ void sumo_rc_loop() {
 
   else if (x_axis_value >= MAX_ANALOG_VALUE) {
     // Girar a la derecha
-    Aldosivi->Forward(turn_velocity, velocity);
+    Aldosivi->Right(velocity, velocity);
     /*
     leftmotor->Forward(velocity);
     rightmotor->Forward(turn_velocity);
@@ -181,7 +181,7 @@ void sumo_rc_loop() {
 
   else if (x_axis_value <= -(MAX_ANALOG_VALUE)) {
     // Girar a la izquierda
-    Aldosivi->Forward(velocity, turn_velocity);
+    Aldosivi->Left(velocity, velocity);
     /*
     leftmotor->Forward(turn_velocity);
     rightmotor->Forward(velocity);
