@@ -17,6 +17,10 @@
 #define TICK_DEBUG_SHARP 1500
 
 #define TICK_GIRO_INICIO 50
+#define TICK_GIRO_IZQUIERDA_45 200
+#define TICK_GIRO_IZQUIERDA_90 500
+#define TICK_GIRO_DERECHA_45 200
+#define TICK_GIRO_DERECHA_90 500
 #define TICK_INICIO 4900
 
 unsigned long currentTimeSharp = 0;
@@ -69,6 +73,12 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define VEL_CORRECCION_DER_DER 240
 #define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 90  // 130
 #define VEL_GIRO_BUSQUEDA_MEJORADA_DER 80  // 100
+// Variables seleccion de lado y giro predefinidos
+#define CANT_MAX_ESTRATEGIAS 4
+#define CANT_MIN_ESTRATEGIAS 1
+int count_side = 0;
+int count_degree = 0;
+
 // Variables distancia de sensores sharp
 #define DIST_LECTURA_MAX 60  // sami = 35
 int distSharpCenterLeft = 0;
@@ -140,7 +150,7 @@ void SetFlank(bool f) {
   previousState = !flank;
 }
 
-bool GetIsPress() {
+bool GetIsPress(int pin_pulsador) {
   /*
   bool actualState = digitalRead(PIN_PULSADOR_START_1);
   bool state = (previousState != actualState) && actualState == flank;
@@ -148,7 +158,7 @@ bool GetIsPress() {
   delay(100);
   return state;
   */
-  return digitalRead(PIN_PULSADOR_START_1);
+  return digitalRead(pin_pulsador);
 }
 
 
@@ -188,10 +198,43 @@ void printReadSensors() {
   }
 }
 
+enum estrategia {
+  GIRO_IZQUIERDA_45,
+  GIRO_IZQUIERDA_90,
+  GIRO_DERECHA_45,
+  GIRO_DERECHA_90
+};
+
+void giroPredefinido() {
+  switch (count_estrategia) {
+    case GIRO_IZQUIERDA_45:
+      Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_IZQUIERDA_45);
+      break;
+
+    case GIRO_IZQUIERDA_90:
+      Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_IZQUIERDA_90);
+      break;
+
+    case GIRO_DERECHA_45:
+      Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_DERECHA_45);
+      break;
+
+    case GIRO_DERECHA_90:
+      Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_DERECHA_90);
+      break;
+    
+    /*default:
+    break;*/
+  }
+}
+
 //Enum de estados de movimiento de robot
 enum movimiento {
   INICIO,
-  //MODO,
   BUSQUEDA_MEJORADA,
   CORRECCION_IZQUIERDA,
   CORRECCION_DERECHA,
@@ -210,9 +253,6 @@ void printStatus() {
       case INICIO:
         state = "INICIO";
         break;
-      /*case MODO:
-        state = "MODO";
-        break;*/
       case BUSQUEDA_MEJORADA:
         state = "BUSQUEDA_MEJORADA";
         break;
@@ -236,7 +276,7 @@ void printStatus() {
     SerialBT.print("State: ");
     SerialBT.println(state);
     SerialBT.print("|| boton : ");
-    SerialBT.println(GetIsPress());
+    SerialBT.println(GetIsPress(PIN_PULSADOR_START_1));
     SerialBT.println("---------");
   }
 }
@@ -252,13 +292,61 @@ void switchCase() {
       oled.setTextColor(WHITE);
       oled.setCursor(4, 0);
       oled.println("INICIO");
+      oled.display();
+      if (DEBUG_STATE) SerialBT.println("INICIO");
+      delay(2000);
+
+      oled.clearDisplay();
+      oled.setTextSize(1);
+      oled.setTextColor(WHITE);
+      oled.setCursor(4, 0);
+      oled.println("Elegir estrategia");
       oled.setCursor(0, 9);
       oled.println("---------------------");
       oled.setCursor(0, 26);
-      oled.println("Esperando confirmacion..");
+      oled.println("Estrategia: ");
+      oled.display();
+      // seleccionar lado y grado de giro
+      while (GetIsPress(PIN_PULSADOR_START_1) == true) {
+        if (GetIsPress(PIN_PULSADOR_ESTRATEGIAS_2) == false) {
+          count_estrategia++;
+          if (count_estrategia > CANT_MAX_ESTRATEGIAS) {
+            count_estrategia = CANT_MIN_ESTRATEGIAS;
+          }
+
+          if (DEBUG_STATE) {
+            SerialBT.print("Estrategia: ");
+            SerialBT.println(count_estrategia);
+          }
+          // actualizar contador en la oled
+          oled.setCursor(0, 26);
+          oled.print("Estrategia: ");
+          oled.println(count_estrategia);
+          oled.display();
+          delay(500);
+        }
+      }
+
+      if (DEBUG_STATE) {
+        SerialBT.println("Pressed");
+        SerialBT.print("Estrategia seleccionada: ");
+        SerialBT.println(count_estrategia);
+      }
+
+      oled.clearDisplay();
+      oled.setTextSize(1);
+      oled.setTextColor(WHITE);
+      oled.setCursor(4, 0);
+      oled.println("Pressed");
+      oled.display();
+      oled.setCursor(0, 9);
+      oled.println("---------------------");
+      oled.setCursor(0, 26);
+      oled.print("Giro a usar: ");
+      oled.println(count_estrategia);
       oled.display();
 
-      while (GetIsPress() == true) {
+       while (GetIsPress(PIN_PULSADOR_START_1) == true) {
         if (DEBUG_STATE) {
           if (millis() > currentTimeState + TICK_DEBUG_STATE) {
             currentTimeState = millis();
@@ -266,6 +354,7 @@ void switchCase() {
           }
         }
       }
+
       oled.clearDisplay();
       oled.setTextSize(1);
       oled.setTextColor(WHITE);
@@ -273,20 +362,19 @@ void switchCase() {
       oled.println("Pressed");
       oled.display();
       if (DEBUG_STATE) SerialBT.println("Pressed");
-
+      
       delay(TICK_INICIO);
       oled.clearDisplay();
       oled.display();
-      
-      Aldosivi->Left(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_INICIO);
+      // hacer giro predefinido antes de busqueda mejorada
+      giroPredefinido();
+
+      // giro izquierda
+      /*Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_INICIO);*/
       movimiento = BUSQUEDA_MEJORADA;
-
+      // movimiento = MODO;
       break;
-
-    /*case MODO:
-
-      break;*/
 
     case BUSQUEDA_MEJORADA:
       // Busqueda sobre propio eje
