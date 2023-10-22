@@ -191,6 +191,7 @@ void printReadSensors() {
 //Enum de estados de movimiento de robot
 enum movimiento {
   INICIO,
+  //MODO,
   BUSQUEDA_MEJORADA,
   CORRECCION_IZQUIERDA,
   CORRECCION_DERECHA,
@@ -209,6 +210,9 @@ void printStatus() {
       case INICIO:
         state = "INICIO";
         break;
+      /*case MODO:
+        state = "MODO";
+        break;*/
       case BUSQUEDA_MEJORADA:
         state = "BUSQUEDA_MEJORADA";
         break;
@@ -273,14 +277,19 @@ void switchCase() {
       delay(TICK_INICIO);
       oled.clearDisplay();
       oled.display();
+      
       Aldosivi->Left(VEL_MAX, VEL_MAX);
       delay(TICK_GIRO_INICIO);
       movimiento = BUSQUEDA_MEJORADA;
 
       break;
 
+    /*case MODO:
+
+      break;*/
+
     case BUSQUEDA_MEJORADA:
-      // Busqueda sobre propio eje 
+      // Busqueda sobre propio eje
       Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
 
       // Busqueda moverse en circulo
