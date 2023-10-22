@@ -76,8 +76,7 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 // Variables seleccion de lado y giro predefinidos
 #define CANT_MAX_ESTRATEGIAS 4
 #define CANT_MIN_ESTRATEGIAS 1
-int count_side = 0;
-int count_degree = 0;
+int count_estrategia = 0;
 
 // Variables distancia de sensores sharp
 #define DIST_LECTURA_MAX 60  // sami = 35
@@ -308,7 +307,7 @@ void switchCase() {
       oled.display();
       // seleccionar lado y grado de giro
       while (GetIsPress(PIN_PULSADOR_START_1) == true) {
-        if (GetIsPress(PIN_PULSADOR_ESTRATEGIAS_2) == false) {
+        if (GetIsPress(PIN_PULSADOR_ESTRATEGIA_2) == false) {
           count_estrategia++;
           if (count_estrategia > CANT_MAX_ESTRATEGIAS) {
             count_estrategia = CANT_MIN_ESTRATEGIAS;
