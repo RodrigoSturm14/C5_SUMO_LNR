@@ -2,10 +2,10 @@
 #include "BluetoothSerial.h"
 #include <EngineController.h>
 
-#define PIN_RIGHT_ENGINE_IN1 21
-#define PIN_RIGHT_ENGINE_IN2 19
-#define PIN_LEFT_ENGINE_IN1 22
-#define PIN_LEFT_ENGINE_IN2 23
+#define PIN_RIGHT_ENGINE_IN1 26
+#define PIN_RIGHT_ENGINE_IN2 27
+#define PIN_LEFT_ENGINE_IN1 17
+#define PIN_LEFT_ENGINE_IN2 16 
 #define PWM_CHANNEL_RIGHT_IN1 1
 #define PWM_CHANNEL_RIGHT_IN2 2
 #define PWM_CHANNEL_LEFT_IN1 3
@@ -28,20 +28,20 @@ void setup()
 
 void loop()
 {
-    robot->Forward(speed);
-    SerialBT.println("Forward ")
+    Ryo->Forward(speed);
+    SerialBT.println("Forward ");
     delay(3000);
-    robot->Backward(speed);
-    SerialBT.println("Backward ")
+    Ryo->Backward(speed);
+    SerialBT.println("Backward ");
     delay(3000);
-    robot->Left(speed);
-    SerialBT.println("Left ")
+    Ryo->Left(speed);
+    SerialBT.println("Left ");
     delay(3000);
-    robot->Right(speed);
-    SerialBT.println("Right ")
+    Ryo->Right(speed);
+    SerialBT.println("Right ");
     delay(3000);
-    robot->Stop();
-    SerialBT.println("Stop ")
+    Ryo->Stop();
+    SerialBT.println("Stop ");
     delay(3000);
   
 }
