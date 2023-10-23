@@ -16,6 +16,7 @@
 #define TICK_DEBUG_ANALOG 1500
 #define TICK_DEBUG_SHARP 1500
 
+#define TICK_BUTTON_STATE 600
 #define TICK_GIRO_INICIO 50
 #define TICK_INICIO 4900
 
@@ -48,9 +49,19 @@ int analog;
 // Pulsadores de Inicio y Estrategias
 #define PIN_PULSADOR_START_1 5
 #define PIN_PULSADOR_ESTRATEGIA_2 4
+
+#define TICK_GIRO_IZQUIERDA_45 200
+#define TICK_GIRO_IZQUIERDA_90 200
+#define TICK_GIRO_DERECHA_45 200
+#define TICK_GIRO_DERECHA_90 200
+#define TICK_ADELANTE 200
+
+#define TICK_START 1000
+#define MAX_MODE 6
+#define MIN_MODE 1
 bool stateStart = 1;
 unsigned long currentTimeButton = 0;
-#define TICK_START 1000
+int count_estrategia = 0;
 
 // Variables de pantalla OLED
 #define SCREEN_WIDTH 128  // OLED width,  in pixels
@@ -237,6 +248,79 @@ void printStatus() {
   }
 }
 
+enum movimietos_predefinidos {
+  GIRO_IZQUIERDA_45,
+  GIRO_IZQUIERDA_90,
+  GIRO_DERECHA_45,
+  GIRO_DERECHA_90,
+  AMAGUE_ADELANTE_DERECHA,
+  AMAGUE_ADELANTE_IZQUIERDA
+};
+
+void printEstrategia() {
+  String state = "";
+  switch (count_estrategia) {
+    case GIRO_IZQUIERDA_45:
+      state = "GIRO_IZQUIERDA_45";
+      break;
+    case GIRO_IZQUIERDA_90:
+      state = "GIRO_IZQUIERDA_90";
+      break;
+    case GIRO_DERECHA_45:
+      state = "GIRO_DERECHA_45";
+      break;
+    case GIRO_DERECHA_90:
+      state = "GIRO_DERECHA_90";
+      break;
+    case AMAGUE_ADELANTE_DERECHA:
+      state = "AMAGUE_ADELANTE_DERECHA";
+      break;
+    case AMAGUE_ADELANTE_IZQUIERDA:
+      state = "AMAGUE_ADELANTE_IZQUIERDA";
+      break;
+  }
+  SerialBT.print("State: ");
+  SerialBT.println(state);
+  SerialBT.println("---------");
+}
+
+
+void movimientoPredefinido() {
+  switch (count_estrategia) {
+    case GIRO_IZQUIERDA_45:
+      Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_IZQUIERDA_45);
+      break;
+    case GIRO_IZQUIERDA_90:
+      Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_IZQUIERDA_90);
+      break;
+    case GIRO_DERECHA_45:
+      Aldosivi->Right(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_DERECHA_45);
+      break;
+    case GIRO_DERECHA_90:
+      Aldosivi->Right(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_DERECHA_90);
+      break;
+    case AMAGUE_ADELANTE_DERECHA:
+      Aldosivi->Forward(VEL_MAX, VEL_MAX);
+      delay(TICK_ADELANTE);
+      Aldosivi->Right(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_DERECHA_90);
+      break;
+    case AMAGUE_ADELANTE_IZQUIERDA:
+      Aldosivi->Forward(VEL_MAX, VEL_MAX);
+      delay(TICK_ADELANTE);
+      Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_IZQUIERDA_90);
+      break;
+  }
+  if (DEBUG_STATE) {
+    printEstrategia();
+  }
+}
+
 void switchCase() {
   switch (movimiento) {
 
@@ -248,32 +332,51 @@ void switchCase() {
       oled.setTextColor(WHITE);
       oled.setCursor(4, 0);
       oled.println("INICIO");
-      oled.setCursor(0, 9);
-      oled.println("---------------------");
-      oled.setCursor(0, 26);
-      oled.println("Esperando confirmacion..");
       oled.display();
 
       while (GetIsPress() == true) {
-        if (DEBUG_STATE) {
-          if (millis() > currentTimeState + TICK_DEBUG_STATE) {
-            currentTimeState = millis();
-            SerialBT.println("Esperando confirmacion..");
+        if (digitalRead(PIN_PULSADOR_ESTRATEGIA_2) == true) {
+          if (DEBUG_STATE) {
+            if (millis() > currentTimeState + TICK_BUTTON_STATE) {
+              currentTimeState = millis();
+              count_estrategia++;
+              if (count_estrategia > MAX_MODE) count_estrategia = MIN_MODE;
+              oled.clearDisplay();
+              oled.setCursor(0, 9);
+              oled.println("---------------------");
+              oled.setCursor(0, 26);
+              oled.print("Estrategia: ");
+              oled.println(count_estrategia);
+              oled.display();
+              if (DEBUG_STATE) {
+                SerialBT.print("Estrategia: ");
+                SerialBT.println(count_estrategia);
+              }
+            }
           }
         }
       }
+
       oled.clearDisplay();
       oled.setTextSize(1);
       oled.setTextColor(WHITE);
       oled.setCursor(4, 0);
       oled.println("Pressed");
+      oled.setCursor(0, 9);
+      oled.println("---------------------");
+      oled.setCursor(0, 26);
+      oled.print("Estrategia: ");
+      oled.println(count_estrategia);
       oled.display();
+
       if (DEBUG_STATE) SerialBT.println("Pressed");
 
       delay(TICK_INICIO);
       oled.clearDisplay();
       oled.display();
-      
+
+      movimientoPredefinido();
+
       Aldosivi->Left(VEL_MAX, VEL_MAX);
       delay(TICK_GIRO_INICIO);
       movimiento = BUSQUEDA_MEJORADA;
@@ -322,7 +425,7 @@ void switchCase() {
       do {
         Aldosivi->Left(VEL_GIRO, VEL_GIRO);
       } while (sharpCenterRight->SharpDist() > DIST_LECTURA_MAX);
-      
+
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
@@ -389,6 +492,7 @@ void setup() {
   Wire.begin();
   oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   pinMode(PIN_PULSADOR_START_1, INPUT_PULLUP);
+  pinMode(PIN_PULSADOR_ESTRATEGIA_2, INPUT_PULLDOWN);
 }
 
 void loop() {
