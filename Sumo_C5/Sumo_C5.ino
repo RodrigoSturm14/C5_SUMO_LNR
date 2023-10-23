@@ -10,7 +10,7 @@
 
 //debug
 #define DEBUG_SHARP 0
-#define DEBUG_STATE 0
+#define DEBUG_STATE 1
 #define DEBUG_ANALOG 0
 #define TICK_DEBUG_STATE 1500
 #define TICK_DEBUG_ANALOG 1500
@@ -191,7 +191,6 @@ void printReadSensors() {
 //Enum de estados de movimiento de robot
 enum movimiento {
   INICIO,
-  //MODO,
   BUSQUEDA_MEJORADA,
   CORRECCION_IZQUIERDA,
   CORRECCION_DERECHA,
@@ -210,9 +209,6 @@ void printStatus() {
       case INICIO:
         state = "INICIO";
         break;
-      /*case MODO:
-        state = "MODO";
-        break;*/
       case BUSQUEDA_MEJORADA:
         state = "BUSQUEDA_MEJORADA";
         break;
@@ -284,10 +280,6 @@ void switchCase() {
 
       break;
 
-    /*case MODO:
-
-      break;*/
-
     case BUSQUEDA_MEJORADA:
       // Busqueda sobre propio eje
       Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
@@ -330,6 +322,7 @@ void switchCase() {
       do {
         Aldosivi->Left(VEL_GIRO, VEL_GIRO);
       } while (sharpCenterRight->SharpDist() > DIST_LECTURA_MAX);
+      
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
