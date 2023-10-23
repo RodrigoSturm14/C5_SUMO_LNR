@@ -225,8 +225,8 @@ void giroPredefinido() {
       Aldosivi->Left(VEL_MAX, VEL_MAX);
       delay(TICK_GIRO_DERECHA_90);
       break;
-    
-    /*default:
+
+      /*default:
     break;*/
   }
 }
@@ -306,8 +306,9 @@ void switchCase() {
       oled.println("Estrategia: ");
       oled.display();
       // seleccionar lado y grado de giro
-      while (GetIsPress(PIN_PULSADOR_START_1) == true) {
-        if (GetIsPress(PIN_PULSADOR_ESTRATEGIA_2) == false) {
+      while (GetIsPress(PIN_PULSADOR_START_1) == true || count_estrategia == 0) {
+        SerialBT.println("En while");
+        if (digitalRead(PIN_PULSADOR_ESTRATEGIA_2) == false) {
           count_estrategia++;
           if (count_estrategia > CANT_MAX_ESTRATEGIAS) {
             count_estrategia = CANT_MIN_ESTRATEGIAS;
@@ -318,6 +319,13 @@ void switchCase() {
             SerialBT.println(count_estrategia);
           }
           // actualizar contador en la oled
+          oled.clearDisplay();
+          oled.setTextSize(1);
+          oled.setTextColor(WHITE);
+          oled.setCursor(4, 0);
+          oled.println("Elegir estrategia");
+          oled.setCursor(0, 9);
+          oled.println("---------------------");
           oled.setCursor(0, 26);
           oled.print("Estrategia: ");
           oled.println(count_estrategia);
@@ -345,7 +353,7 @@ void switchCase() {
       oled.println(count_estrategia);
       oled.display();
 
-       while (GetIsPress(PIN_PULSADOR_START_1) == true) {
+      while (GetIsPress(PIN_PULSADOR_START_1) == true) {
         if (DEBUG_STATE) {
           if (millis() > currentTimeState + TICK_DEBUG_STATE) {
             currentTimeState = millis();
@@ -361,7 +369,7 @@ void switchCase() {
       oled.println("Pressed");
       oled.display();
       if (DEBUG_STATE) SerialBT.println("Pressed");
-      
+
       delay(TICK_INICIO);
       oled.clearDisplay();
       oled.display();
@@ -483,6 +491,7 @@ void setup() {
   Wire.begin();
   oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   pinMode(PIN_PULSADOR_START_1, INPUT_PULLUP);
+  pinMode(PIN_PULSADOR_ESTRATEGIA_2, INPUT_PULLUP);
 }
 
 void loop() {
