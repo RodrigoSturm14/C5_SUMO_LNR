@@ -43,14 +43,14 @@ int analog;
 #define PIN_PULSADOR_START_1 5
 #define PIN_PULSADOR_ESTRATEGIA_2 4
 
-#define TICK_GIRO_IZQUIERDA_45 70   // 100
+#define TICK_GIRO_IZQUIERDA_45 80   // 100
 #define TICK_GIRO_IZQUIERDA_90 110  // [130] buen giro a 90
-#define TICK_GIRO_IZQUIERDA_135 180  // 
+#define TICK_GIRO_IZQUIERDA_135 190  // 180
 
 #define TICK_GIRO_DERECHA_45 110 // 90   ---> los giros hacia la derecha se pueden pasar de los grados para que busqueda_mejorada los corrija hacia la izquierda
-#define TICK_GIRO_DERECHA_90 150 // [130] buen giro a 90
-#define TICK_GIRO_DERECHA_135 180  //
-#define TICK_ADELANTE 120           // 100
+#define TICK_GIRO_DERECHA_90 140 // [130] buen giro a 90
+#define TICK_GIRO_DERECHA_135 200  // 180
+#define TICK_ADELANTE 160           // 120
 
 #define TICK_START 1000
 #define MAX_MODE 8
@@ -177,13 +177,13 @@ void movimientoPredefinido() {
       Aldosivi->Forward(VEL_MAX, VEL_MAX);
       delay(TICK_ADELANTE);
       Aldosivi->Left(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_IZQUIERDA_135);
+      delay(210);
       break;
     case MESSI_DER:
       Aldosivi->Forward(VEL_MAX, VEL_MAX);
       delay(TICK_ADELANTE);
       Aldosivi->Right(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_DERECHA_135);
+      delay(220);
       break;
   }
   if (DEBUG_STATE) {
