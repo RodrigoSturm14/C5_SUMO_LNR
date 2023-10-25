@@ -9,7 +9,7 @@
 #include "BluetoothSerial.h"  //Bluetooh
 
 //debug
-#define DEBUG_SHARP 0
+#define DEBUG_SHARP 1
 #define DEBUG_STATE 1
 #define DEBUG_ANALOG 0
 #define TICK_DEBUG_STATE 1500
@@ -81,7 +81,7 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 90  // 130
 #define VEL_GIRO_BUSQUEDA_MEJORADA_DER 80  // 100
 // Variables distancia de sensores sharp
-#define DIST_LECTURA_MAX 60  // sami = 35
+#define DIST_LECTURA_MAX 80  // sami = 35
 int distSharpCenterLeft = 0;
 int distSharpCenterRight = 0;
 int distSharpLeft = 0;
