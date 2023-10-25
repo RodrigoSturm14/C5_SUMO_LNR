@@ -43,18 +43,22 @@ int analog;
 #define PIN_PULSADOR_START_1 5
 #define PIN_PULSADOR_ESTRATEGIA_2 4
 
-#define TICK_GIRO_IZQUIERDA_45 100
-#define TICK_GIRO_IZQUIERDA_90 150
-#define TICK_GIRO_DERECHA_45 100
-#define TICK_GIRO_DERECHA_90 150
-#define TICK_ADELANTE 100
+#define TICK_GIRO_IZQUIERDA_45 70   // 100
+#define TICK_GIRO_IZQUIERDA_90 110  // [130] buen giro a 90
+#define TICK_GIRO_IZQUIERDA_135 180  // 
+
+#define TICK_GIRO_DERECHA_45 110 // 90   ---> los giros hacia la derecha se pueden pasar de los grados para que busqueda_mejorada los corrija hacia la izquierda
+#define TICK_GIRO_DERECHA_90 150 // [130] buen giro a 90
+#define TICK_GIRO_DERECHA_135 180  //
+#define TICK_ADELANTE 120           // 100
 
 #define TICK_START 1000
-#define MAX_MODE 6
-#define MIN_MODE 1
+#define MAX_MODE 8
+#define MIN_MODE 0
 bool stateStart = 1;
 unsigned long currentTimeButton = 0;
 int count_estrategia = 0;
+String estrategia = "";
 
 // Variables de pantalla OLED
 #define SCREEN_WIDTH 128  // OLED width,  in pixels
@@ -94,41 +98,57 @@ enum movimietos_predefinidos {
   NONE,
   GIRO_IZQUIERDA_45,
   GIRO_IZQUIERDA_90,
+  GIRO_IZQUIERDA_135,
   GIRO_DERECHA_45,
   GIRO_DERECHA_90,
-  AMAGUE_ADELANTE_DERECHA,
-  AMAGUE_ADELANTE_IZQUIERDA
+  GIRO_DERECHA_135,
+  MESSI_IZQ,
+  MESSI_DER
 };
-
+// Print de estrategias en pantalla oled y debug BT
 void printEstrategia() {
-  String state = "";
+  estrategia = "";
   switch (count_estrategia) {
+    case NONE:
+      estrategia = "NONE";
+      break;
     case GIRO_IZQUIERDA_45:
-      state = "GIRO_IZQUIERDA_45";
+      estrategia = "IZQ-45";
       break;
     case GIRO_IZQUIERDA_90:
-      state = "GIRO_IZQUIERDA_90";
+      estrategia = "IZQ-90";
+      break;
+    case GIRO_IZQUIERDA_135:
+      estrategia = "IZQ-135";
       break;
     case GIRO_DERECHA_45:
-      state = "GIRO_DERECHA_45";
+      estrategia = "DER-45";
       break;
     case GIRO_DERECHA_90:
-      state = "GIRO_DERECHA_90";
+      estrategia = "DER-90";
       break;
-    case AMAGUE_ADELANTE_DERECHA:
-      state = "AMAGUE_ADELANTE_DERECHA";
+    case GIRO_DERECHA_135:
+      estrategia = "DER-135";
       break;
-    case AMAGUE_ADELANTE_IZQUIERDA:
-      state = "AMAGUE_ADELANTE_IZQUIERDA";
+    case MESSI_IZQ:  // AMAGUE_ADELANTE_IZQUIERDA
+      estrategia = "MESSI-IZQ";
+      break;
+    case MESSI_DER:  // AMAGUE_ADELANTE_DERECHA
+      estrategia = "MESSI-DER";
       break;
   }
-  SerialBT.print("State: ");
-  SerialBT.println(state);
-  SerialBT.println("---------");
+  if (DEBUG_STATE) {
+    SerialBT.print("Estrategia: ");
+    SerialBT.println(estrategia);
+    SerialBT.println("---------");
+  }
 }
 
 void movimientoPredefinido() {
   switch (count_estrategia) {
+    case NONE:
+      // movimiento = BUSQUEDA_MEJORADA;
+      break;
     case GIRO_IZQUIERDA_45:
       Aldosivi->Left(VEL_MAX, VEL_MAX);
       delay(TICK_GIRO_IZQUIERDA_45);
@@ -136,6 +156,10 @@ void movimientoPredefinido() {
     case GIRO_IZQUIERDA_90:
       Aldosivi->Left(VEL_MAX, VEL_MAX);
       delay(TICK_GIRO_IZQUIERDA_90);
+      break;
+    case GIRO_IZQUIERDA_135:
+      Aldosivi->Left(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_IZQUIERDA_135);
       break;
     case GIRO_DERECHA_45:
       Aldosivi->Right(VEL_MAX, VEL_MAX);
@@ -145,17 +169,21 @@ void movimientoPredefinido() {
       Aldosivi->Right(VEL_MAX, VEL_MAX);
       delay(TICK_GIRO_DERECHA_90);
       break;
-    case AMAGUE_ADELANTE_DERECHA:
-      Aldosivi->Forward(VEL_MAX, VEL_MAX);
-      delay(TICK_ADELANTE);
+    case GIRO_DERECHA_135:
       Aldosivi->Right(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_DERECHA_90);
+      delay(TICK_GIRO_DERECHA_135);
       break;
-    case AMAGUE_ADELANTE_IZQUIERDA:
+    case MESSI_IZQ:
       Aldosivi->Forward(VEL_MAX, VEL_MAX);
       delay(TICK_ADELANTE);
       Aldosivi->Left(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_IZQUIERDA_90);
+      delay(TICK_GIRO_IZQUIERDA_135);
+      break;
+    case MESSI_DER:
+      Aldosivi->Forward(VEL_MAX, VEL_MAX);
+      delay(TICK_ADELANTE);
+      Aldosivi->Right(VEL_MAX, VEL_MAX);
+      delay(TICK_GIRO_DERECHA_135);
       break;
   }
   if (DEBUG_STATE) {
@@ -186,17 +214,16 @@ void setup() {
         currentTimeState = millis();
         count_estrategia++;
         if (count_estrategia > MAX_MODE) count_estrategia = MIN_MODE;
+
+        printEstrategia();
+
         oled.clearDisplay();
         oled.setCursor(0, 9);
         oled.println("---------------------");
         oled.setCursor(0, 26);
         oled.print("Estrategia: ");
-        oled.println(count_estrategia);
+        oled.println(estrategia);
         oled.display();
-        if (DEBUG_STATE) {
-          SerialBT.print("Estrategia: ");
-          SerialBT.println(count_estrategia);
-        }
       }
     }
   }
@@ -210,7 +237,7 @@ void setup() {
   oled.println("---------------------");
   oled.setCursor(0, 26);
   oled.print("Estrategia: ");
-  oled.println(count_estrategia);
+  oled.println(estrategia);
   oled.display();
 
   if (DEBUG_STATE) SerialBT.println("Pressed");
