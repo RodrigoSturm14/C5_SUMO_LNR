@@ -33,6 +33,7 @@ void setup() {
 void printRead(){
   if (millis() > currentTime + TICK_DEBUG)
   {
+    currentTime = millis();
     SerialBT.print("Left Distance: ");
     SerialBT.println(distance_left);
     SerialBT.print("Left Center Distance: ");
