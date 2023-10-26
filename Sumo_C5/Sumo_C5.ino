@@ -407,6 +407,7 @@ void switchCase() {
       delay(TICK_GIRO_INICIO);
       movimiento = BUSQUEDA_MEJORADA;
       */
+      movimiento = BUSQUEDA_MEJORADA;
       break;
 
     case BUSQUEDA_MEJORADA:
@@ -448,9 +449,9 @@ void switchCase() {
       Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
       delay(1500);
       */
-      do {
+      /*do {
         Aldosivi->Left(VEL_GIRO, VEL_GIRO);
-      } while (sharpCenterRight->SharpDist() > DIST_LECTURA_MAX);
+      } while (sharpCenterRight->SharpDist() > DIST_LECTURA_MAX);*/
 
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
@@ -464,9 +465,9 @@ void switchCase() {
       Aldosivi->Right(VEL_GIRO, VEL_GIRO);
       delay(1500);
       */
-      do {
+      /*do {
         Aldosivi->Right(VEL_GIRO, VEL_GIRO);
-      } while (sharpCenterLeft->SharpDist() > DIST_LECTURA_MAX);
+      } while (sharpCenterLeft->SharpDist() > DIST_LECTURA_MAX);*/
 
       if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = ATAQUE;
       else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
