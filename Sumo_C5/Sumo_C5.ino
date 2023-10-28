@@ -9,8 +9,8 @@
 #include "BluetoothSerial.h"  //Bluetooh
 
 //debug
-#define DEBUG_SHARP 1
-#define DEBUG_STATE 1
+#define DEBUG_SHARP 0
+#define DEBUG_STATE 0
 #define DEBUG_ANALOG 0
 #define TICK_DEBUG_STATE 1500
 #define TICK_DEBUG_ANALOG 1500
@@ -75,11 +75,11 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // Velocidades Sumo
 #define VEL_MAX 255
-#define VEL_MEDIA 200  // Velocidad de montaje?
+#define VEL_MEDIA 255  // Velocidad de montaje?
 #define VEL_BAJA 150
 #define VEL_CORRECCION 90
-#define VEL_GIRO 110
-#define VEL_EJE_BUSQUEDA 110
+#define VEL_GIRO 130
+#define VEL_EJE_BUSQUEDA 130
 #define VEL_CORRECCION_IZQ_IZQ 230
 #define VEL_CORRECCION_IZQ_DER 255
 #define VEL_CORRECCION_DER_IZQ 255
@@ -87,7 +87,7 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 90  // 130
 #define VEL_GIRO_BUSQUEDA_MEJORADA_DER 80  // 100
 // Variables distancia de sensores sharp
-#define DIST_LECTURA_MAX 60  // sami = 35
+#define DIST_LECTURA_MAX 55  // sami = 35
 int distSharpCenterLeft = 0;
 int distSharpCenter = 0;
 int distSharpCenterRight = 0;
@@ -407,7 +407,7 @@ void switchCase() {
       oled.println(estrategia);
       oled.display();
 
-      if (DEBUG_STATE) SerialBT.println("Pressed");
+      //if (DEBUG_STATE) SerialBT.println("Pressed");
 
       delay(TICK_INICIO);
       oled.clearDisplay();
