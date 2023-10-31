@@ -369,13 +369,13 @@ void switchCase() {
       oled.display();
 
       while (GetIsPress() == true) {
-        /*if (DEBUG_STATE) {
+        if (DEBUG_STATE) {
           if (millis() > currentTimeState + TICK_BUTTON_STATE) {
             currentTimeState = millis();
             sharpReadings();
             printReadSensors();
           }
-        }*/
+        }
         if (digitalRead(PIN_PULSADOR_ESTRATEGIA_2) == true) {
           if (millis() > currentTimeState + TICK_BUTTON_STATE) {
             currentTimeState = millis();
