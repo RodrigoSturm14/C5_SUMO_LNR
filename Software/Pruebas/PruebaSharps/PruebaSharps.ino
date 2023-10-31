@@ -22,6 +22,7 @@ BluetoothSerial SerialBT;
 
 Isensor *sharp_left = new Sharp_GP2Y0A02(PIN_SHARP_LEFT);
 Isensor *sharp_center_left = new Sharp_GP2Y0A02(PIN_SHARP_CENTER_LEFT);
+
 Isensor *sharp_center_right = new Sharp_GP2Y0A02(PIN_SHARP_CENTER_RIGHT);
 Isensor *sharp_right = new Sharp_GP2Y0A02(PIN_SHARP_RIGHT);
 
