@@ -1,42 +1,42 @@
-//Librerias
+// Librerias
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>  //Oled
 #include <EngineController.h>  //Motores
 #include <AnalogSensor.h>      //libreria para sensores analogicos( sensores tatami)
 #include <DistanceSensors.h>   //libreria para sensores
-//#include <Button.h>
+// #include <Button.h>
 #include "BluetoothSerial.h"  //Bluetooh
 
-//debug
+// debug
 #define DEBUG_SHARP 1
 #define DEBUG_STATE 1
 #define DEBUG_ANALOG 0
-#define TICK_DEBUG_STATE 1000
-#define TICK_DEBUG_ANALOG 1000
-#define TICK_DEBUG_SHARP 1000
+#define TICK_DEBUG_STATE 800
+#define TICK_DEBUG_ANALOG 800
+#define TICK_DEBUG_SHARP 800
 
 #define TICK_BUTTON_STATE 600
 #define TICK_GIRO_INICIO 50
-#define TICK_INICIO 4900
+#define TICK_INICIO 4950
 
 unsigned long currentTimeSharp = 0;
 unsigned long currentTimeState = 0;
 unsigned long currentTimeAnalog = 0;
 
 int analog;
-//Oled
+// Oled
 #define SCREEN_WIDTH 128  // OLED width,  in pixels
 #define SCREEN_HEIGHT 64  // OLED height, in pixels
 
-//Pines sensores de Distancia
+// Pines sensores de Distancia
 #define PIN_SHARP_LEFT 25
 #define PIN_SHARP_CENTER_LEFT 33
 #define PIN_SHARP_CENTER 34
 #define PIN_SHARP_CENTER_RIGHT 32
 #define PIN_SHARP_RIGHT 35
 
-//Pines motores y canales PWM
+// Pines motores y canales PWM
 #define PIN_MOTOR_IZQUIERDO_1 17
 #define PIN_MOTOR_IZQUIERDO_2 16
 #define PIN_MOTOR_DERECHO_1 26
@@ -74,19 +74,17 @@ String estrategia = "";
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // Velocidades Sumo
-#define VEL_MAX 255
-#define VEL_BAJA 150
-#define VEL_CORRECCION 90
-#define VEL_GIRO 110
-#define VEL_EJE_BUSQUEDA 110
-#define VEL_CORRECCION_IZQ_IZQ 240
-#define VEL_CORRECCION_IZQ_DER 255
-#define VEL_CORRECCION_DER_IZQ 255
-#define VEL_CORRECCION_DER_DER 240
+#define VEL_MAX 200
+#define VEL_GIRO 145
+#define VEL_EJE_BUSQUEDA 145
+#define VEL_CORRECCION_IZQ_IZQ 190
+#define VEL_CORRECCION_IZQ_DER 200
+#define VEL_CORRECCION_DER_IZQ 200
+#define VEL_CORRECCION_DER_DER 190
 #define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 90  // 130
 #define VEL_GIRO_BUSQUEDA_MEJORADA_DER 80  // 100
 // Variables distancia de sensores sharp
-#define DIST_LECTURA_MAX 60  // sami = 35
+#define DIST_LECTURA_MAX 40  // sami = 35
 int distSharpCenterLeft = 0;
 int distSharpCenter = 0;
 int distSharpCenterRight = 0;
@@ -118,12 +116,12 @@ double Sharp::SharpDist() {
   // float distancia_cm = 2076.0 / (adc - 11.0);
   // Formula para el sensor GP2Y0A60SZLF
   // https://www.instructables.com/How-to-setup-a-Pololu-Carrier-with-Sharp-GP2Y0A60S/
-  double distancia_cm = 187754 * pow(adc, -1.183);  //REGULAR LA POTENCIA PARA OBETENER BUENA PRESICION
+  double distancia_cm = 187754 * pow(adc, -1.183);  // REGULAR LA POTENCIA PARA OBETENER BUENA PRESICION
   return (distancia_cm);
   delay(100);
 }
 
-//configuramos el Serial Bluetooth
+// configuramos el Serial Bluetooth
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
@@ -137,20 +135,20 @@ Sharp *sharpCenterRight = new Sharp(PIN_SHARP_CENTER_RIGHT);
 Sharp *sharpLeft = new Sharp(PIN_SHARP_LEFT);
 Sharp *sharpRight = new Sharp(PIN_SHARP_RIGHT);
 
-//Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+// Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 IEngine *rightEngine = new Driver_DRV8825(PIN_MOTOR_DERECHO_1, PIN_MOTOR_DERECHO_2, CANAL_PWM_DERECHO_1, CANAL_PWM_DERECHO_2);
 IEngine *leftEngine = new Driver_DRV8825(PIN_MOTOR_IZQUIERDO_1, PIN_MOTOR_IZQUIERDO_2, CANAL_PWM_IZQUIERDO_1, CANAL_PWM_IZQUIERDO_2);
 EngineController *Aldosivi = new EngineController(rightEngine, leftEngine);
 
-//AnalogSensor *rightTatami = new AnalogSensor(PIN_SENSOR_TATAMI_DER);
-//AnalogSensor *LeftTatami = new AnalogSensor(PIN_SENSOR_TATAMI_IZQ);
+// AnalogSensor *rightTatami = new AnalogSensor(PIN_SENSOR_TATAMI_DER);
+// AnalogSensor *LeftTatami = new AnalogSensor(PIN_SENSOR_TATAMI_IZQ);
 
-//Isensor *sharpRight = new Sharp_GP2Y0A02(PIN_SENSOR_DISTANCIA_DERECHO);
-//Isensor *sharpLeft = new Sharp_GP2Y0A02(PIN_SENSOR_DISTANCIA_IZQUIERDO);
+// Isensor *sharpRight = new Sharp_GP2Y0A02(PIN_SENSOR_DISTANCIA_DERECHO);
+// Isensor *sharpLeft = new Sharp_GP2Y0A02(PIN_SENSOR_DISTANCIA_IZQUIERDO);
 
-//Button *stat = new  Button(PIN_PULSADOR_START_1);
-//Button *strategy = new  Button(PIN_PULSADOR_ESTRATEGIA_2, false);
+// Button *stat = new  Button(PIN_PULSADOR_START_1);
+// Button *strategy = new  Button(PIN_PULSADOR_ESTRATEGIA_2, false);
 bool flank = HIGH;
 bool previousState;
 void SetFlank(bool f) {
@@ -158,7 +156,7 @@ void SetFlank(bool f) {
   previousState = !flank;
 }
 
-bool GetIsPress() {
+bool GetIsPress(int pin) {
   /*
   bool actualState = digitalRead(PIN_PULSADOR_START_1);
   bool state = (previousState != actualState) && actualState == flank;
@@ -166,11 +164,10 @@ bool GetIsPress() {
   delay(100);
   return state;
   */
-  return digitalRead(PIN_PULSADOR_START_1);
+  return digitalRead(pin);
 }
 
-
-//AnalogSensor *ldrSensor = new AnalogSensor(PIN_SENSOR_LDR);
+// AnalogSensor *ldrSensor = new AnalogSensor(PIN_SENSOR_LDR);
 
 void sharpReadings() {
   distSharpCenterLeft = sharpCenterLeft->SharpDist();
@@ -180,7 +177,7 @@ void sharpReadings() {
   distSharpRight = sharpRight->SharpDist();
   // Tatami?
 }
-//Funciones para imprimir las lecturas de los sensores por el serial Bluetooth
+// Funciones para imprimir las lecturas de los sensores por el serial Bluetooth
 /*
 char printAnalog(char t)
 {
@@ -209,7 +206,7 @@ void printReadSensors() {
   }
 }
 
-//Enum de estados de movimiento de robot
+// Enum de estados de movimiento de robot
 enum movimiento {
   INICIO,
   BUSQUEDA_MEJORADA,
@@ -253,7 +250,7 @@ void printStatus() {
     SerialBT.print("State: ");
     SerialBT.println(state);
     SerialBT.print("|| boton : ");
-    SerialBT.println(GetIsPress());
+    SerialBT.println(GetIsPress(PIN_PULSADOR_START_1));
     SerialBT.println("---------");
   }
 }
@@ -308,7 +305,6 @@ void printEstrategia() {
   }
 }
 
-
 void movimientoPredefinido() {
   switch (count_estrategia) {
     case NONE:
@@ -360,137 +356,216 @@ void switchCase() {
   switch (movimiento) {
 
     case INICIO:
-      Aldosivi->Stop();
-      oled.clearDisplay();
-      oled.setTextSize(1);
-      oled.setTextColor(WHITE);
-      oled.setCursor(4, 0);
-      oled.println("INICIO");
-      oled.display();
+      {
+        Aldosivi->Stop();
+        oled.clearDisplay();
+        oled.setTextSize(1);
+        oled.setTextColor(WHITE);
+        oled.setCursor(4, 0);
+        oled.println("INICIO");
+        oled.display();
 
-      while (GetIsPress() == true) {
-        if (DEBUG_SHARP) printReadSensors();
-        if (digitalRead(PIN_PULSADOR_ESTRATEGIA_2) == true) {
-          if (millis() > currentTimeState + TICK_BUTTON_STATE) {
-            currentTimeState = millis();
-            count_estrategia++;
-            if (count_estrategia > MAX_MODE) count_estrategia = MIN_MODE;
-            printEstrategia();
-            oled.clearDisplay();
-            oled.setCursor(0, 9);
-            oled.println("---------------------");
-            oled.setCursor(0, 26);
-            oled.print("Estrategia: ");
-            oled.println(estrategia);
-            oled.display();
+        while (GetIsPress(PIN_PULSADOR_START_1) == true) {
+
+          if (DEBUG_SHARP) {
+            distSharpCenterLeft = sharpCenterLeft->SharpDist();
+            distSharpCenter = sharpCenter->SharpDist();
+            distSharpCenterRight = sharpCenterRight->SharpDist();
+            distSharpLeft = sharpLeft->SharpDist();
+            distSharpRight = sharpRight->SharpDist();
+            printReadSensors();
+          }
+          if (digitalRead(PIN_PULSADOR_ESTRATEGIA_2) == true) {
+            if (millis() > currentTimeState + TICK_BUTTON_STATE) {
+              currentTimeState = millis();
+              count_estrategia++;
+              if (count_estrategia > MAX_MODE)
+                count_estrategia = MIN_MODE;
+              printEstrategia();
+              oled.clearDisplay();
+              oled.setCursor(0, 9);
+              oled.println("---------------------");
+              oled.setCursor(0, 26);
+              oled.print("Estrategia: ");
+              oled.println(estrategia);
+              oled.display();
+            }
           }
         }
+
+        oled.clearDisplay();
+        oled.setTextSize(1);
+        oled.setTextColor(WHITE);
+        oled.setCursor(4, 0);
+        oled.println("Pressed");
+        oled.setCursor(0, 9);
+        oled.println("---------------------");
+        oled.setCursor(0, 26);
+        oled.print("Estrategia: ");
+        oled.println(estrategia);
+        oled.display();
+
+        if (DEBUG_STATE)
+          SerialBT.println("Pressed");
+        delay(TICK_INICIO);
+        oled.clearDisplay();
+        oled.display();
+
+        movimientoPredefinido();
+        /*
+    Aldosivi->Left(VEL_MAX, VEL_MAX);
+    delay(TICK_GIRO_INICIO);
+    */
+        movimiento = BUSQUEDA_MEJORADA;
+
+        break;
       }
 
-      oled.clearDisplay();
-      oled.setTextSize(1);
-      oled.setTextColor(WHITE);
-      oled.setCursor(4, 0);
-      oled.println("Pressed");
-      oled.setCursor(0, 9);
-      oled.println("---------------------");
-      oled.setCursor(0, 26);
-      oled.print("Estrategia: ");
-      oled.println(estrategia);
-      oled.display();
-
-      if (DEBUG_STATE) SerialBT.println("Pressed");
-
-      delay(TICK_INICIO);
-      oled.clearDisplay();
-      oled.display();
-
-      movimientoPredefinido();
-      /*
-      Aldosivi->Left(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_INICIO);
-      movimiento = BUSQUEDA_MEJORADA;
-      */
-      break;
-
     case BUSQUEDA_MEJORADA:
-      // Busqueda sobre propio eje
-      Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
+      {
+        Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
 
-      // Busqueda moverse en circulo
-      /*
-      Aldosivi->Forward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
-      */
-      if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
-      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
-      else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
-      else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
-      break;
+        // Busqueda moverse en circulo
+        /*
+    Aldosivi->Forward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
+    */
+        if (distSharpCenter <= DIST_LECTURA_MAX)
+          movimiento = ATAQUE;
+        // else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+        // movimiento = BUSQUEDA_MEJORADA;
+        if (distSharpCenter > DIST_LECTURA_MAX) {
+          if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+            movimiento = CORRECCION_IZQUIERDA;
+          else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+            movimiento = CORRECCION_DERECHA;
+          else if (distSharpLeft <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_IZQUIERDA;
+          else if (distSharpRight <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_DERECHA;
+        }
+
+        break;
+      }
 
     case CORRECCION_IZQUIERDA:
-      Aldosivi->Forward(VEL_CORRECCION_IZQ_DER, VEL_CORRECCION_IZQ_IZQ);
-      if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
-      else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
-      else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
-      break;
+      {
+        Aldosivi->Forward(VEL_CORRECCION_IZQ_DER, VEL_CORRECCION_IZQ_IZQ);
+        if (distSharpCenter <= DIST_LECTURA_MAX)
+          movimiento = ATAQUE;
+        if (distSharpCenter > DIST_LECTURA_MAX) {
+          if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+            movimiento = BUSQUEDA_MEJORADA;
+          else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+            movimiento = CORRECCION_DERECHA;
+          else if (distSharpRight > DIST_LECTURA_MAX && distSharpLeft <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_IZQUIERDA;
+          else if (distSharpRight <= DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_DERECHA;
+        }
+        break;
+      }
 
     case CORRECCION_DERECHA:
-      Aldosivi->Forward(VEL_CORRECCION_DER_DER, VEL_CORRECCION_DER_IZQ);
-      if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
-      else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
-      else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
-      break;
+      {
+        Aldosivi->Forward(VEL_CORRECCION_DER_DER, VEL_CORRECCION_DER_IZQ);
+        if (distSharpCenter <= DIST_LECTURA_MAX)
+          movimiento = ATAQUE;
+        if (distSharpCenter > DIST_LECTURA_MAX) {
+          if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+            movimiento = BUSQUEDA_MEJORADA;
+          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+            movimiento = CORRECCION_IZQUIERDA;
+          else if (distSharpRight > DIST_LECTURA_MAX && distSharpLeft <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_IZQUIERDA;
+          else if (distSharpRight <= DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_DERECHA;
+        }
+        break;
+      }
 
     case TE_ENCONTRE_IZQUIERDA:
-      /* Giro para cronometrar
-      Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
-      delay(1500);
-      */
-      do {
-        Aldosivi->Left(VEL_GIRO, VEL_GIRO);
-        if (DEBUG_STATE) printStatus();
-        if (DEBUG_SHARP) printReadSensors();
-      } while (sharpCenter->SharpDist() > DIST_LECTURA_MAX);
+      {
+        /* Giro para cronometrar
+    Aldosivi->Left(VEL_GIRO_BUSQUEDA, VEL_GIRO_BUSQUEDA);
+    delay(1500);
+    */
+        do {
+          distSharpCenterLeft = sharpCenterLeft->SharpDist();
+          distSharpCenter = sharpCenter->SharpDist();
+          distSharpCenterRight = sharpCenterRight->SharpDist();
+          distSharpLeft = sharpLeft->SharpDist();
+          distSharpRight = sharpRight->SharpDist();
+          Aldosivi->Left(VEL_GIRO, VEL_GIRO);
+          if (DEBUG_STATE)
+            printStatus();
+          if (DEBUG_SHARP)
+            printReadSensors();
+        } while (sharpCenter->SharpDist() > DIST_LECTURA_MAX);
 
-      if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
-      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
-      else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
-      break;
+        if (distSharpCenter <= DIST_LECTURA_MAX)
+          movimiento = ATAQUE;
+        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+        //  movimiento = BUSQUEDA_MEJORADA;
+        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+        //  movimiento = CORRECCION_IZQUIERDA;
+        //else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+        //  movimiento = CORRECCION_DERECHA;
+        //else if ( distSharpRight <= DIST_LECTURA_MAX)
+        //  movimiento = TE_ENCONTRE_DERECHA;
+        break;
+      }
 
     case TE_ENCONTRE_DERECHA:
-      /* Giro para cronometrar
-      Aldosivi->Right(VEL_GIRO, VEL_GIRO);
-      delay(1500);
-      */
-      do {
-        Aldosivi->Right(VEL_GIRO, VEL_GIRO);
-        if (DEBUG_STATE) printStatus();
-        if (DEBUG_SHARP) printReadSensors();
-      } while (sharpCenter->SharpDist() > DIST_LECTURA_MAX);
+      {
+        /* Giro para cronometrar
+    Aldosivi->Right(VEL_GIRO, VEL_GIRO);
+    delay(1500);
+    */
+        do {
+          distSharpCenterLeft = sharpCenterLeft->SharpDist();
+          distSharpCenter = sharpCenter->SharpDist();
+          distSharpCenterRight = sharpCenterRight->SharpDist();
+          distSharpLeft = sharpLeft->SharpDist();
+          distSharpRight = sharpRight->SharpDist();
+          Aldosivi->Right(VEL_GIRO, VEL_GIRO);
+          if (DEBUG_STATE)
+            printStatus();
+          if (DEBUG_SHARP)
+            printReadSensors();
+        } while (sharpCenter->SharpDist() > DIST_LECTURA_MAX);
 
-      if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
-      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
-      else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
-      break;
+        if (distSharpCenter <= DIST_LECTURA_MAX)
+          movimiento = ATAQUE;
+        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+        //  movimiento = CORRECCION_IZQUIERDA;
+        //else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+        //  movimiento = CORRECCION_DERECHA;
+        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+        //  movimiento = BUSQUEDA_MEJORADA;
+        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+        //  movimiento = CORRECCION_IZQUIERDA;
+        //else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+        //  movimiento = CORRECCION_DERECHA;
+        //else if (distSharpLeft <= DIST_LECTURA_MAX)
+        //  movimiento = TE_ENCONTRE_IZQUIERDA;
+        break;
+      }
 
     case ATAQUE:
-      Aldosivi->Forward(VEL_MAX, VEL_MAX);
-      if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = BUSQUEDA_MEJORADA;
-      else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
-      else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_DERECHA;
-      else if (distSharpLeft <= DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
-      else if (distSharpLeft > DIST_LECTURA_MAX && distSharpRight <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
-      break;
+      {
+        Aldosivi->Forward(VEL_MAX, VEL_MAX);
+        if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+          movimiento = BUSQUEDA_MEJORADA;
+        else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+          movimiento = CORRECCION_IZQUIERDA;
+        else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+          movimiento = CORRECCION_DERECHA;
+        else if (distSharpLeft <= DIST_LECTURA_MAX)
+          movimiento = TE_ENCONTRE_IZQUIERDA;
+        else if (distSharpRight <= DIST_LECTURA_MAX)
+          movimiento = TE_ENCONTRE_DERECHA;
+        break;
+      }
   }
 }
 void setup() {
