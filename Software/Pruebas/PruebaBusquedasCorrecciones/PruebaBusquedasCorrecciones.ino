@@ -456,7 +456,14 @@ void switchCase() {
     case CORRECCION_IZQUIERDA:
       {
         // Aldosivi->Forward(VEL_CORRECCION_IZQ_DER, VEL_CORRECCION_IZQ_IZQ);
-        Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
+        while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
+          Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
+          sharpReadings();
+          if (DEBUG_STATE){
+            printStatus();
+            printReadSensors();
+          }
+        }
         if (distSharpCenter <= DIST_LECTURA_MAX)
           movimiento = ATAQUE;
         if (distSharpCenter > DIST_LECTURA_MAX) {
@@ -478,10 +485,10 @@ void switchCase() {
         while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
           Aldosivi->Right(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
           sharpReadings();
-          if (DEBUG_STATE)
+          if (DEBUG_STATE){
             printStatus();
-          if (DEBUG_SHARP)
             printReadSensors();
+          }
         }
 
         if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
@@ -499,10 +506,10 @@ void switchCase() {
         while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
           Aldosivi->Left(VEL_GIRO, VEL_GIRO);
           sharpReadings();
-          if (DEBUG_STATE)
+          if (DEBUG_STATE){
             printStatus();
-          if (DEBUG_SHARP)
             printReadSensors();
+          }
         }
 
         if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
@@ -522,10 +529,10 @@ void switchCase() {
         while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
           Aldosivi->Right(VEL_GIRO, VEL_GIRO);
           sharpReadings();
-          if (DEBUG_STATE)
+          if (DEBUG_STATE){
             printStatus();
-          if (DEBUG_SHARP)
             printReadSensors();
+          }
         }
 
         if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
