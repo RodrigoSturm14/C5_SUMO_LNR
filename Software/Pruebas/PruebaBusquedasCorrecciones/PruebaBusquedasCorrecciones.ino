@@ -315,8 +315,9 @@ void movimientoPredefinido() {
       delay(TICK_GIRO_IZQUIERDA_45);
       break;
     case GIRO_IZQUIERDA_90:
-      Aldosivi->Left(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_IZQUIERDA_90);
+      while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
+        Aldosivi->Left(VEL_GIRO, VEL_GIRO);
+      }
       break;
     case GIRO_IZQUIERDA_135:
       Aldosivi->Left(VEL_MAX, VEL_MAX);
