@@ -318,6 +318,12 @@ void movimientoPredefinido() {
       while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
         Aldosivi->Left(VEL_GIRO, VEL_GIRO);
       }
+      if(sharpCenter->SharpDist() > DIST_LECTURA_MAX){
+        movimiento = ATAQUE;
+      }
+      else{
+        movimiento = BUSQUEDA_MEJORADA;
+      }
       break;
     case GIRO_IZQUIERDA_135:
       Aldosivi->Left(VEL_MAX, VEL_MAX);
