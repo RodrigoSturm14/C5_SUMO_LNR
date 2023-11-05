@@ -558,6 +558,8 @@ void switchCase() {
           movimiento = TE_ENCONTRE_IZQUIERDA;
         else if (distSharpRight <= DIST_LECTURA_MAX)
           movimiento = TE_ENCONTRE_DERECHA;
+        else if (distSharpCenter <= DIST_LECTURA_MAX)
+          movimiento = ATAQUE;
         break;
       }
   }
