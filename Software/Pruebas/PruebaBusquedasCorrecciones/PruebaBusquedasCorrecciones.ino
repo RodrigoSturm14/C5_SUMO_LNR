@@ -368,11 +368,7 @@ void switchCase() {
         while (GetIsPress(PIN_PULSADOR_START_1) == true) {
 
           if (DEBUG_SHARP) {
-            distSharpCenterLeft = sharpCenterLeft->SharpDist();
-            distSharpCenter = sharpCenter->SharpDist();
-            distSharpCenterRight = sharpCenterRight->SharpDist();
-            distSharpLeft = sharpLeft->SharpDist();
-            distSharpRight = sharpRight->SharpDist();
+            sharpReadings();
             printReadSensors();
           }
           if (digitalRead(PIN_PULSADOR_ESTRATEGIA_2) == true) {
