@@ -333,8 +333,14 @@ void movimientoPredefinido() {
       delay(TICK_GIRO_DERECHA_45);
       break;
     case GIRO_DERECHA_90:
-      Aldosivi->Right(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_DERECHA_90);
+      while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
+        sharpReadings();
+        if (DEBUG_SHARP) {
+          printReadSensors();
+        }
+        Aldosivi->Right(VEL_GIRO, VEL_GIRO);
+      }
+      movimiento = ATAQUE;
       break;
     case GIRO_DERECHA_135:
       Aldosivi->Right(VEL_MAX, VEL_MAX);
