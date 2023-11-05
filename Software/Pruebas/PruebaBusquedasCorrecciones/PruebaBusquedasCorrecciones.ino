@@ -316,17 +316,14 @@ void movimientoPredefinido() {
       break;
     case GIRO_IZQUIERDA_90:
       while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
+        sharpReadings();
         if (DEBUG_SHARP) {
-            sharpReadings();
-            printReadSensors();
-          }
+          printReadSensors();
+        }
         Aldosivi->Left(VEL_GIRO, VEL_GIRO);
       }
-      if(sharpCenter->SharpDist() > DIST_LECTURA_MAX){
+      if (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
         movimiento = ATAQUE;
-      }
-      else{
-        movimiento = BUSQUEDA_MEJORADA;
       }
       break;
     case GIRO_IZQUIERDA_135:
@@ -419,9 +416,9 @@ void switchCase() {
 
         movimientoPredefinido();
         /*
-    Aldosivi->Left(VEL_MAX, VEL_MAX);
-    delay(TICK_GIRO_INICIO);
-    */
+        Aldosivi->Left(VEL_MAX, VEL_MAX);
+        delay(TICK_GIRO_INICIO);
+        */
         // movimiento = BUSQUEDA_MEJORADA;
 
         break;
@@ -433,8 +430,8 @@ void switchCase() {
 
         // Busqueda moverse en circulo
         /*
-    Aldosivi->Forward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
-    */
+        Aldosivi->Forward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
+        */
         if (distSharpCenter <= DIST_LECTURA_MAX)
           movimiento = ATAQUE;
         // else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
@@ -449,7 +446,6 @@ void switchCase() {
           else if (distSharpRight <= DIST_LECTURA_MAX)
             movimiento = TE_ENCONTRE_DERECHA;
         }
-
         break;
       }
 
@@ -459,7 +455,7 @@ void switchCase() {
         while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
           Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
           sharpReadings();
-          if (DEBUG_STATE){
+          if (DEBUG_STATE) {
             printStatus();
             printReadSensors();
           }
@@ -485,7 +481,7 @@ void switchCase() {
         while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
           Aldosivi->Right(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
           sharpReadings();
-          if (DEBUG_STATE){
+          if (DEBUG_STATE) {
             printStatus();
             printReadSensors();
           }
@@ -506,7 +502,7 @@ void switchCase() {
         while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
           Aldosivi->Left(VEL_GIRO, VEL_GIRO);
           sharpReadings();
-          if (DEBUG_STATE){
+          if (DEBUG_STATE) {
             printStatus();
             printReadSensors();
           }
@@ -529,7 +525,7 @@ void switchCase() {
         while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
           Aldosivi->Right(VEL_GIRO, VEL_GIRO);
           sharpReadings();
-          if (DEBUG_STATE){
+          if (DEBUG_STATE) {
             printStatus();
             printReadSensors();
           }
