@@ -316,6 +316,10 @@ void movimientoPredefinido() {
       break;
     case GIRO_IZQUIERDA_90:
       while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
+        if (DEBUG_SHARP) {
+            sharpReadings();
+            printReadSensors();
+          }
         Aldosivi->Left(VEL_GIRO, VEL_GIRO);
       }
       if(sharpCenter->SharpDist() > DIST_LECTURA_MAX){
@@ -418,7 +422,7 @@ void switchCase() {
     Aldosivi->Left(VEL_MAX, VEL_MAX);
     delay(TICK_GIRO_INICIO);
     */
-        movimiento = BUSQUEDA_MEJORADA;
+        // movimiento = BUSQUEDA_MEJORADA;
 
         break;
       }
