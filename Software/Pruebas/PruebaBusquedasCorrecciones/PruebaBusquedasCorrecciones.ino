@@ -75,8 +75,8 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // Velocidades Sumo
 #define VEL_MAX 200
-#define VEL_GIRO 145
-#define VEL_EJE_BUSQUEDA 145
+#define VEL_GIRO 170
+#define VEL_EJE_BUSQUEDA 170
 #define VEL_CORRECCION_IZQ_IZQ 190
 #define VEL_CORRECCION_IZQ_DER 200
 #define VEL_CORRECCION_DER_IZQ 200
@@ -84,7 +84,7 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define VEL_GIRO_BUSQUEDA_MEJORADA_IZQ 90  // 130
 #define VEL_GIRO_BUSQUEDA_MEJORADA_DER 80  // 100
 // Variables distancia de sensores sharp
-#define DIST_LECTURA_MAX 40  // sami = 35
+#define DIST_LECTURA_MAX 50  // sami = 35
 int distSharpCenterLeft = 0;
 int distSharpCenter = 0;
 int distSharpCenterRight = 0;
