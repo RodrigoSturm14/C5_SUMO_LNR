@@ -553,7 +553,7 @@ void switchCase() {
 
     case ATAQUE:
       {
-        Aldosivi->Stop();
+        Aldosivi->Forward(VEL_MAX, VEL_MAX);
         if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
           movimiento = BUSQUEDA_MEJORADA;
         else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
