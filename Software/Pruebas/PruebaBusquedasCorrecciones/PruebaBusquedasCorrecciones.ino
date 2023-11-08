@@ -61,7 +61,7 @@ int analog;
 #define TICK_ADELANTE 160          // 120
 
 #define TICK_START 1000
-#define MAX_MODE 8
+#define MAX_MODE 3
 #define MIN_MODE 0
 bool stateStart = 1;
 unsigned long currentTimeButton = 0;
@@ -257,14 +257,8 @@ void printStatus() {
 
 enum movimietos_predefinidos {
   NONE,
-  GIRO_IZQUIERDA_45,
-  GIRO_IZQUIERDA_90,
-  GIRO_IZQUIERDA_135,
-  GIRO_DERECHA_45,
-  GIRO_DERECHA_90,
-  GIRO_DERECHA_135,
-  MESSI_IZQ,
-  MESSI_DER
+  GIRO_IZQUIERDA,
+  GIRO_DERECHA,
 };
 
 void printEstrategia() {
@@ -273,29 +267,11 @@ void printEstrategia() {
     case NONE:
       estrategia = "NONE";
       break;
-    case GIRO_IZQUIERDA_45:
-      estrategia = "IZQ-45";
-      break;
-    case GIRO_IZQUIERDA_90:
+    case GIRO_IZQUIERDA:
       estrategia = "IZQ-90";
       break;
-    case GIRO_IZQUIERDA_135:
-      estrategia = "IZQ-135";
-      break;
-    case GIRO_DERECHA_45:
-      estrategia = "DER-45";
-      break;
-    case GIRO_DERECHA_90:
+    case GIRO_DERECHA:
       estrategia = "DER-90";
-      break;
-    case GIRO_DERECHA_135:
-      estrategia = "DER-135";
-      break;
-    case MESSI_IZQ:  // AMAGUE_ADELANTE_IZQUIERDA
-      estrategia = "MESSI-IZQ";
-      break;
-    case MESSI_DER:  // AMAGUE_ADELANTE_DERECHA
-      estrategia = "MESSI-DER";
       break;
   }
   if (DEBUG_STATE) {
@@ -310,11 +286,7 @@ void movimientoPredefinido() {
     case NONE:
       movimiento = BUSQUEDA_MEJORADA;
       break;
-    case GIRO_IZQUIERDA_45:
-      Aldosivi->Left(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_IZQUIERDA_45);
-      break;
-    case GIRO_IZQUIERDA_90:
+    case GIRO_IZQUIERDA:
       while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
         sharpReadings();
         if (DEBUG_SHARP) {
@@ -324,15 +296,7 @@ void movimientoPredefinido() {
       }
       movimiento = ATAQUE;
       break;
-    case GIRO_IZQUIERDA_135:
-      Aldosivi->Left(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_IZQUIERDA_135);
-      break;
-    case GIRO_DERECHA_45:
-      Aldosivi->Right(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_DERECHA_45);
-      break;
-    case GIRO_DERECHA_90:
+    case GIRO_DERECHA:
       while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
         sharpReadings();
         if (DEBUG_SHARP) {
@@ -341,22 +305,6 @@ void movimientoPredefinido() {
         Aldosivi->Right(VEL_GIRO, VEL_GIRO);
       }
       movimiento = ATAQUE;
-      break;
-    case GIRO_DERECHA_135:
-      Aldosivi->Right(VEL_MAX, VEL_MAX);
-      delay(TICK_GIRO_DERECHA_135);
-      break;
-    case MESSI_IZQ:
-      Aldosivi->Forward(VEL_MAX, VEL_MAX);
-      delay(TICK_ADELANTE);
-      Aldosivi->Left(VEL_MAX, VEL_MAX);
-      delay(210);
-      break;
-    case MESSI_DER:
-      Aldosivi->Forward(VEL_MAX, VEL_MAX);
-      delay(TICK_ADELANTE);
-      Aldosivi->Right(VEL_MAX, VEL_MAX);
-      delay(220);
       break;
   }
   if (DEBUG_STATE) {
