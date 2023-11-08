@@ -118,7 +118,7 @@ double Sharp::SharpDist() {
   // https://www.instructables.com/How-to-setup-a-Pololu-Carrier-with-Sharp-GP2Y0A60S/
   double distancia_cm = 187754 * pow(adc, -1.183);  // REGULAR LA POTENCIA PARA OBETENER BUENA PRESICION
   return (distancia_cm);
-  delay(100);
+  // delay(100);
 }
 
 // configuramos el Serial Bluetooth
@@ -314,7 +314,7 @@ void movimientoPredefinido() {
 
 void switchCase() {
   switch (movimiento) {
-
+    
     case INICIO:
       {
         Aldosivi->Stop();
