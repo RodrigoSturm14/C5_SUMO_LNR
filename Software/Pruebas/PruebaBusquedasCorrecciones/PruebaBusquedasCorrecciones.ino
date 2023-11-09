@@ -61,7 +61,7 @@ int analog;
 #define TICK_ADELANTE 160          // 120
 
 #define TICK_START 1000
-#define MAX_MODE 3
+#define MAX_MODE 4
 #define MIN_MODE 0
 bool stateStart = 1;
 unsigned long currentTimeButton = 0;
@@ -364,6 +364,7 @@ enum movimietos_predefinidos {
   NONE,
   GIRO_IZQUIERDA,
   GIRO_DERECHA,
+  SIN_ATAQUE
 };
 
 void printEstrategia() {
@@ -411,6 +412,9 @@ void movimientoPredefinido() {
       }
       movimiento = ATAQUE;
       break;
+    case SIN_ATAQUE:
+      movimiento = BUSQUEDA_MEJORADA;
+      break;
   }
   if (DEBUG_STATE) {
     printEstrategia();
@@ -419,7 +423,7 @@ void movimientoPredefinido() {
 
 void switchCase() {
   switch (movimiento) {
-    
+
     case INICIO:
       {
         Aldosivi->Stop();
@@ -629,6 +633,7 @@ void switchCase() {
             movimiento = TE_ENCONTRE_DERECHA;
         }
         break;
+        */
       }
   }
 }
