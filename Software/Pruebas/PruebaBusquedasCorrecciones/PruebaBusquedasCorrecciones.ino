@@ -75,6 +75,8 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // Velocidades Sumo
 bool sentidoGiro = false;
+bool stopAtacar = true;
+int turnDelay = 200;
 #define VEL_MAX 200
 #define VEL_GIRO 170
 #define VEL_EJE_BUSQUEDA 170
@@ -379,6 +381,9 @@ void printEstrategia() {
     case GIRO_DERECHA:
       estrategia = "DERECHA";
       break;
+    case SIN_ATAQUE:
+      estrategia = "SIN ATAQUE";
+      break;
   }
   if (DEBUG_STATE) {
     SerialBT.print("Estrategia: ");
@@ -403,6 +408,7 @@ void movimientoPredefinido() {
       movimiento = ATAQUE;
       break;
     case GIRO_DERECHA:
+      sentidoGiro = true;
       while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
         sharpReadings();
         if (DEBUG_SHARP) {
@@ -413,6 +419,7 @@ void movimientoPredefinido() {
       movimiento = ATAQUE;
       break;
     case SIN_ATAQUE:
+      stopAtacar = false;
       movimiento = BUSQUEDA_MEJORADA;
       break;
   }
@@ -475,13 +482,10 @@ void switchCase() {
         oled.clearDisplay();
         oled.display();
 
+        if( sentidoGiro ) Aldosivi->Right(VEL_MAX,VEL_MAX);
+        else Aldosivi->Left(VEL_MAX,VEL_MAX);
+        delay(turnDelay);
         movimientoPredefinido();
-        /*
-        Aldosivi->Left(VEL_MAX, VEL_MAX);
-        delay(TICK_GIRO_INICIO);
-        */
-        // movimiento = BUSQUEDA_MEJORADA;
-
         break;
       }
 
@@ -570,7 +574,7 @@ void switchCase() {
 
         if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
         if (distSharpCenter > DIST_LECTURA_MAX) {
-          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+          if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
             movimiento = BUSQUEDA_MEJORADA;
           else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
             movimiento = CORRECCION_IZQUIERDA;
@@ -597,7 +601,7 @@ void switchCase() {
 
         if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
         if (distSharpCenter > DIST_LECTURA_MAX) {
-          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+          if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
             movimiento = CORRECCION_IZQUIERDA;
           else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
             movimiento = CORRECCION_DERECHA;
@@ -618,7 +622,8 @@ void switchCase() {
     case ATAQUE:
       {
         if(distSharpCenter <= DIST_LECTURA_MAX){
-          Aldosivi->Forward(VEL_MAX, VEL_MAX);
+          if(stopAtacar == true) Aldosivi->Forward(VEL_MAX, VEL_MAX);
+          else Aldosivi->Stop();
         }
         if (distSharpCenter > DIST_LECTURA_MAX) {
           if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
@@ -633,7 +638,7 @@ void switchCase() {
             movimiento = TE_ENCONTRE_DERECHA;
         }
         break;
-        */
+        
       }
   }
 }
