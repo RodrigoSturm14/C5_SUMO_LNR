@@ -74,6 +74,7 @@ String estrategia = "";
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // Velocidades Sumo
+bool sentidoGiro = false;
 #define VEL_MAX 200
 #define VEL_GIRO 170
 #define VEL_EJE_BUSQUEDA 170
@@ -218,7 +219,111 @@ enum movimiento {
 };
 // Variable que determina el movimiento del robot
 int movimiento = INICIO;
+/*
+void printOptions()
+{
+  // clean the 
+  for (int i = 0; i < 5; i++)
+  {
+    SerialBT.println("");
+  }
+  SerialBT.println("Configuracion Actual:");
 
+  SerialBT.print("I+/J- - leftSpeed = ");
+  SerialBT.println(averageSpeedLeft);
+
+  SerialBT.print("K+/L- - rightLeft = ");
+  SerialBT.println(averageSpeedRight);
+
+  SerialBT.println("Y - DEBUGEAR ROBOT ");
+
+  SerialBT.println("Z - INICIAR ROBOT ");
+
+  for (int i = 0; i < 5; i++)
+  {
+    SerialBT.println("");
+  }
+}
+
+void menuBT()
+{
+  if (SerialBT.available())
+  {
+    char option = SerialBT.read();
+    switch (option)
+    {
+    case 'M':
+    {
+      printOptions();
+      break;
+    }
+    case 'I':
+    {
+      averageSpeedLeft = averageSpeedLeft + VALUE_5;
+
+      SerialBT.println("");
+      printOptions();
+      SerialBT.println("");
+      break;
+    }
+    case 'J':
+    {
+      averageSpeedLeft = averageSpeedLeft - VALUE_5;
+      SerialBT.println("");
+      printOptions();
+      SerialBT.println("");
+      break;
+    }
+    case 'K':
+    {
+      averageSpeedRight = averageSpeedRight + VALUE_5;
+      SerialBT.println("");
+      printOptions();
+      SerialBT.println("");
+      break;
+    }
+
+    case 'L':
+    {
+      averageSpeedRight -= VALUE_5;
+      SerialBT.println("");
+      printOptions();
+      SerialBT.println("");
+      break;
+    }
+    case 'N':
+    {
+      walltofollow = true;
+
+      SerialBT.println("");
+      printOptions();
+      SerialBT.println("");
+      break;
+    }
+    case 'P':
+    {
+      parar_motores = true;
+
+      SerialBT.println("");
+      printOptions();
+      SerialBT.println("");
+      break;
+    }
+    case 'Z':
+    {
+      stateStartButton = true;
+      SerialBT.println("");
+      printOptions();
+      SerialBT.println("");
+      break;
+    }
+    default:
+      SerialBT.println("OPCION INCORRECTA ");
+      break;
+    }
+  }
+}
+*/
 void printStatus() {
   if (millis() > currentTimeState + TICK_DEBUG_STATE) {
     currentTimeState = millis();
@@ -268,10 +373,10 @@ void printEstrategia() {
       estrategia = "NONE";
       break;
     case GIRO_IZQUIERDA:
-      estrategia = "IZQ-90";
+      estrategia = "IZQUIERDA";
       break;
     case GIRO_DERECHA:
-      estrategia = "DER-90";
+      estrategia = "DERECHA";
       break;
   }
   if (DEBUG_STATE) {
@@ -284,7 +389,7 @@ void printEstrategia() {
 void movimientoPredefinido() {
   switch (count_estrategia) {
     case NONE:
-      movimiento = BUSQUEDA_MEJORADA;
+      movimiento = ATAQUE;
       break;
     case GIRO_IZQUIERDA:
       while (sharpCenter->SharpDist() > DIST_LECTURA_MAX) {
@@ -378,12 +483,9 @@ void switchCase() {
 
     case BUSQUEDA_MEJORADA:
       {
-        Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
+        if( sentidoGiro == true) Aldosivi->Right(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
+        else Aldosivi->Left(VEL_EJE_BUSQUEDA, VEL_EJE_BUSQUEDA);
 
-        // Busqueda moverse en circulo
-        /*
-        Aldosivi->Forward(VEL_GIRO_BUSQUEDA_MEJORADA_DER, VEL_GIRO_BUSQUEDA_MEJORADA_IZQ);
-        */
         if (distSharpCenter <= DIST_LECTURA_MAX)
           movimiento = ATAQUE;
         // else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
@@ -423,6 +525,7 @@ void switchCase() {
             movimiento = TE_ENCONTRE_IZQUIERDA;
           else if (distSharpRight <= DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX)
             movimiento = TE_ENCONTRE_DERECHA;
+          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
         }
         break;
       }
@@ -445,6 +548,7 @@ void switchCase() {
           else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
           else if (distSharpRight > DIST_LECTURA_MAX && distSharpLeft <= DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_IZQUIERDA;
           else if (distSharpRight <= DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX) movimiento = TE_ENCONTRE_DERECHA;
+          else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX) movimiento = CORRECCION_IZQUIERDA;
         }
         break;
       }
@@ -461,14 +565,18 @@ void switchCase() {
         }
 
         if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
-        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
-        //  movimiento = BUSQUEDA_MEJORADA;
-        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
-        //  movimiento = CORRECCION_IZQUIERDA;
-        //else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
-        //  movimiento = CORRECCION_DERECHA;
-        //else if ( distSharpRight <= DIST_LECTURA_MAX)
-        //  movimiento = TE_ENCONTRE_DERECHA;
+        if (distSharpCenter > DIST_LECTURA_MAX) {
+          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+            movimiento = BUSQUEDA_MEJORADA;
+          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+            movimiento = CORRECCION_IZQUIERDA;
+          else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+            movimiento = CORRECCION_DERECHA;
+          else if ( distSharpRight <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_DERECHA;
+          else if (distSharpLeft <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_IZQUIERDA;
+        }
         break;
       }
 
@@ -484,36 +592,42 @@ void switchCase() {
         }
 
         if (distSharpCenter <= DIST_LECTURA_MAX) movimiento = ATAQUE;
-        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
-        //  movimiento = CORRECCION_IZQUIERDA;
-        //else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
-        //  movimiento = CORRECCION_DERECHA;
-        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
-        //  movimiento = BUSQUEDA_MEJORADA;
-        //else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
-        //  movimiento = CORRECCION_IZQUIERDA;
-        //else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
-        //  movimiento = CORRECCION_DERECHA;
-        //else if (distSharpLeft <= DIST_LECTURA_MAX)
-        //  movimiento = TE_ENCONTRE_IZQUIERDA;
+        if (distSharpCenter > DIST_LECTURA_MAX) {
+          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+            movimiento = CORRECCION_IZQUIERDA;
+          else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+            movimiento = CORRECCION_DERECHA;
+          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+            movimiento = BUSQUEDA_MEJORADA;
+          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+            movimiento = CORRECCION_IZQUIERDA;
+          else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+            movimiento = CORRECCION_DERECHA;
+          else if (distSharpLeft <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_IZQUIERDA;
+          else if ( distSharpRight <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_DERECHA;
+        }
         break;
       }
 
     case ATAQUE:
       {
-        Aldosivi->Forward(VEL_MAX, VEL_MAX);
-        if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
-          movimiento = BUSQUEDA_MEJORADA;
-        else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
-          movimiento = CORRECCION_IZQUIERDA;
-        else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
-          movimiento = CORRECCION_DERECHA;
-        else if (distSharpLeft <= DIST_LECTURA_MAX)
-          movimiento = TE_ENCONTRE_IZQUIERDA;
-        else if (distSharpRight <= DIST_LECTURA_MAX)
-          movimiento = TE_ENCONTRE_DERECHA;
-        else if (distSharpCenter <= DIST_LECTURA_MAX)
-          movimiento = ATAQUE;
+        if(distSharpCenter <= DIST_LECTURA_MAX){
+          Aldosivi->Forward(VEL_MAX, VEL_MAX);
+        }
+        if (distSharpCenter > DIST_LECTURA_MAX) {
+          if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+            movimiento = BUSQUEDA_MEJORADA;
+          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+            movimiento = CORRECCION_IZQUIERDA;
+          else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+            movimiento = CORRECCION_DERECHA;
+          else if (distSharpLeft <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_IZQUIERDA;
+          else if (distSharpRight <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_DERECHA;
+        }
         break;
       }
   }
