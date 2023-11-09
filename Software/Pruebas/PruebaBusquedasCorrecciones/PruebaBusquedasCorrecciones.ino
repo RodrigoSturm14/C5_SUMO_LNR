@@ -61,7 +61,7 @@ int analog;
 #define TICK_ADELANTE 160          // 120
 
 #define TICK_START 1000
-#define MAX_MODE 3
+#define MAX_MODE 4
 #define MIN_MODE 0
 bool stateStart = 1;
 unsigned long currentTimeButton = 0;
@@ -259,6 +259,7 @@ enum movimietos_predefinidos {
   NONE,
   GIRO_IZQUIERDA,
   GIRO_DERECHA,
+  SIN_ATAQUE
 };
 
 void printEstrategia() {
@@ -268,10 +269,13 @@ void printEstrategia() {
       estrategia = "NONE";
       break;
     case GIRO_IZQUIERDA:
-      estrategia = "IZQ-90";
+      estrategia = "IZQ";
       break;
     case GIRO_DERECHA:
-      estrategia = "DER-90";
+      estrategia = "DER";
+      break;
+    case SIN_ATAQUE:
+      estrategia = "SIN_ATQ";
       break;
   }
   if (DEBUG_STATE) {
@@ -306,6 +310,9 @@ void movimientoPredefinido() {
       }
       movimiento = ATAQUE;
       break;
+    case SIN_ATAQUE:
+      movimiento = BUSQUEDA_MEJORADA;
+      break;
   }
   if (DEBUG_STATE) {
     printEstrategia();
@@ -314,7 +321,7 @@ void movimientoPredefinido() {
 
 void switchCase() {
   switch (movimiento) {
-    
+
     case INICIO:
       {
         Aldosivi->Stop();
@@ -514,7 +521,25 @@ void switchCase() {
           movimiento = TE_ENCONTRE_DERECHA;
         else if (distSharpCenter <= DIST_LECTURA_MAX)
           movimiento = ATAQUE;
+          /*
+        if (count_estrategia == SIN_ATAQUE) {
+          Aldosivi->Stop();
+          if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenter > DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX && distSharpLeft > DIST_LECTURA_MAX && distSharpRight > DIST_LECTURA_MAX)
+            movimiento = BUSQUEDA_MEJORADA;
+          else if (distSharpCenterLeft > DIST_LECTURA_MAX && distSharpCenterRight <= DIST_LECTURA_MAX)
+            movimiento = CORRECCION_IZQUIERDA;
+          else if (distSharpCenterLeft <= DIST_LECTURA_MAX && distSharpCenterRight > DIST_LECTURA_MAX)
+            movimiento = CORRECCION_DERECHA;
+          else if (distSharpLeft <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_IZQUIERDA;
+          else if (distSharpRight <= DIST_LECTURA_MAX)
+            movimiento = TE_ENCONTRE_DERECHA;
+          else if (distSharpCenter <= DIST_LECTURA_MAX)
+            movimiento = ATAQUE;
+        } else if (count_estrategia != SIN_ATAQUE) {
+        }
         break;
+        */
       }
   }
 }
