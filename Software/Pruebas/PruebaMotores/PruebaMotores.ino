@@ -2,10 +2,10 @@
 #include "BluetoothSerial.h"
 #include <EngineController.h>
 
-#define PIN_RIGHT_ENGINE_IN1 26
-#define PIN_RIGHT_ENGINE_IN2 27
-#define PIN_LEFT_ENGINE_IN1 17
-#define PIN_LEFT_ENGINE_IN2 16 
+#define PIN_RIGHT_ENGINE_IN1 17
+#define PIN_RIGHT_ENGINE_IN2 16
+#define PIN_LEFT_ENGINE_IN1 26
+#define PIN_LEFT_ENGINE_IN2 27 
 #define PWM_CHANNEL_RIGHT_IN1 1
 #define PWM_CHANNEL_RIGHT_IN2 2
 #define PWM_CHANNEL_LEFT_IN1 3

@@ -1,6 +1,5 @@
 #include "BluetoothSerial.h"
 
-#define PIN_BUTTON 5
 unsigned long currentTimeButton = 0;
 #define TICK_START 1000
 
@@ -16,8 +15,8 @@ void SetFlank(bool f) {
   previousState = !flank;
 }
 
-bool GetIsPress() {
-  bool actualState = digitalRead(PIN_BUTTON);
+bool GetIsPress(int p) {
+  bool actualState = digitalRead(p);
   bool state = (previousState != actualState) && actualState == flank;
   previousState = actualState;
   delay(100);
@@ -25,12 +24,14 @@ bool GetIsPress() {
 }
 
 void setup() {
-  SerialBT.begin("Aldosivi");
-  pinMode(PIN_BUTTON, INPUT_PULLUP);
+  SerialBT.begin("Halcon");
+  pinMode(18, INPUT_PULLUP);
+  pinMode(32, INPUT_PULLUP);
 }
 
 void loop() {
   if (millis() > currentTimeButton + TICK_START) {
-    if (GetIsPress()) SerialBT.println("Press");
+    if (GetIsPress(18)) SerialBT.println("Press1");
+    if (GetIsPress(32)) SerialBT.println("Press2");
   }
 }
